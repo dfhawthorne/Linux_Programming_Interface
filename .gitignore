@@ -50,3 +50,8 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+# Data files and listings
+*.dat
+*.txt
+*.lst
