@@ -27,6 +27,32 @@ usageError(char *progName)
     exit(EXIT_FAILURE);
 }
 
+/*
+ * Converts an ACL permission set into a bit-string (rwx)
+ */
+
+int
+getPerm(acl_permset_t permset)
+{
+    int perms = 0;
+    int permVal = 0;
+    
+    permVal = acl_get_perm(permset, ACL_READ);
+    if (permVal == -1)
+        errExit("acl_get_perm - ACL_READ");
+    perms |= (permVal == 1) ? 4 : 0;
+    permVal = acl_get_perm(permset, ACL_WRITE);
+    if (permVal == -1)
+        errExit("acl_get_perm - ACL_WRITE");
+    perms |= (permVal == 1) ? 2 : 0;
+    permVal = acl_get_perm(permset, ACL_EXECUTE);
+    if (permVal == -1)
+        errExit("acl_get_perm - ACL_EXECUTE");
+    perms |= (permVal == 1) ? 1 : 0;
+    
+    return perms;
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -38,18 +64,24 @@ main(int argc, char *argv[])
     gid_t *gidp;
     acl_permset_t permset;
     char *name;
-    int entryId, permVal, opt;
+    int entryId, opt;
     char *groupStr = NULL,
-        *userStr = NULL;
+        *userStr   = NULL,
+        *entryType = NULL;
+    char entryName[10];
     int uid = -1;
     int gid = -1;
+    int foundPerms = 0;
+    int maskPerms  = 0;
+    short verbosity = 0;
 
     type = ACL_TYPE_ACCESS;
-    while ((opt = getopt(argc, argv, "u:g:d")) != -1) {
+    while ((opt = getopt(argc, argv, "u:g:dv")) != -1) {
         switch (opt) {
         case 'd': type = ACL_TYPE_DEFAULT;      break;
         case 'g': groupStr = optarg;            break;
         case 'u': userStr  = optarg;            break;
+        case 'v': verbosity++;                  break;
         case '?': usageError(argv[0]);
         }
     }
@@ -60,9 +92,11 @@ main(int argc, char *argv[])
     /* Ensure that only one of user or group is specfied */
 
     if (groupStr != NULL) {
-        /* printf("Group=%s\n", groupStr); */
+        if (verbosity > 1)
+            printf("Group=%s\n", groupStr);
         if (userStr != NULL) {
-            /* printf("User=%s\n", userStr); */
+            if (verbosity > 1)
+                printf("User=%s\n", userStr);
             errExit("Specify only one of either user or group");
         } else {
             if (isdigit(groupStr[0])) {
@@ -75,7 +109,8 @@ main(int argc, char *argv[])
         if (userStr == NULL) {
             errExit("Specify either user or group");
         } else {
-            /* printf("User=%s\n", userStr); */
+            if (verbosity > 1)
+                printf("User=%s\n", userStr);
             if (isdigit(userStr[0])) {
                 uid = atoi(userStr);
             } else {
@@ -91,18 +126,25 @@ main(int argc, char *argv[])
     /* Walk through each entry in this ACL */
 
     for (entryId = ACL_FIRST_ENTRY; ; entryId = ACL_NEXT_ENTRY) {
-        Boolean dispPerms;
-        dispPerms = FALSE;
 
         if (acl_get_entry(acl, entryId, &entry) != 1)
             break;                      /* Exit on error or no more entries */
 
-        /* Retrieve and display tag type */
+        /* Retrieve tag type */
 
         if (acl_get_tag_type(entry, &tag) == -1)
             errExit("acl_get_tag_type");
+        
+        /* Retrieve the associated permissions set */ 
+        
+        if (acl_get_permset(entry, &permset) == -1)
+            errExit("acl_get_permset");
 
-        /* Retrieve and display optional tag qualifier */
+        /*
+         * If there is a matching ACL entry (user or group), record the details
+         * (entry type and name), and save the decoded permissions set for later.
+         * Also, save the permissions set mask for later.
+         */
 
         if (tag == ACL_USER) {
             uidp = acl_get_qualifier(entry);
@@ -110,13 +152,15 @@ main(int argc, char *argv[])
                 errExit("acl_get_qualifier");
 
             if (*uidp == uid) {
-                printf("%-12s", "User");
+                entryType = "User";
                 name = userNameFromId(*uidp);
                 if (name == NULL)
-                    printf("%-8d ", *uidp);
+                    sprintf(entryName, "%-8d ", *uidp);
                 else
-                    printf("%-8s ", name);
-                dispPerms = TRUE;
+                    sprintf(entryName, "%-8s ", name);
+                foundPerms = getPerm(permset);
+                if (verbosity > 1)
+                    printf("User perms found=%d\n", foundPerms);
             }
 
             if (acl_free(uidp) == -1)
@@ -128,49 +172,48 @@ main(int argc, char *argv[])
                 errExit("acl_get_qualifier");
 
             if (*gidp == gid) {
-                printf("%-12s", "Group");
+                entryType = "Group";
                 name = groupNameFromId(*gidp);
                 if (name == NULL)
-                    printf("%-8d ", *gidp);
+                    sprintf(entryName, "%-8d ", *gidp);
                 else
-                    printf("%-8s ", name);
-                dispPerms = TRUE;
+                    sprintf(entryName, "%-8s ", name);
+                foundPerms = getPerm(permset);
+                if (verbosity > 1)
+                    printf("Group perms found=%d\n", foundPerms);
             }
 
             if (acl_free(gidp) == -1)
                 errExit("acl_free");
 
-        } else {
-            continue;
-        }
-
-        /* Retrieve and display permissions */
-
-        /* printf("Tag=%d, dispPerms=%d, uid=%d, gid=%d\n", tag, dispPerms, uid, gid); */
-        
-        if (acl_get_permset(entry, &permset) == -1)
-            errExit("acl_get_permset");
-
-        if (dispPerms) {
-            permVal = acl_get_perm(permset, ACL_READ);
-            if (permVal == -1)
-                errExit("acl_get_perm - ACL_READ");
-            printf("%c", (permVal == 1) ? 'r' : '-');
-            permVal = acl_get_perm(permset, ACL_WRITE);
-            if (permVal == -1)
-                errExit("acl_get_perm - ACL_WRITE");
-            printf("%c", (permVal == 1) ? 'w' : '-');
-            permVal = acl_get_perm(permset, ACL_EXECUTE);
-            if (permVal == -1)
-                errExit("acl_get_perm - ACL_EXECUTE");
-            printf("%c", (permVal == 1) ? 'x' : '-');
-
-            printf("\n");
+        } else if (tag == ACL_MASK) {
+            maskPerms = getPerm(permset);
+            if (verbosity > 1)
+                printf("Mask perms found=%d\n", maskPerms);
         }
     }
 
     if (acl_free(acl) == -1)
         errExit("acl_free");
 
-    exit(EXIT_SUCCESS);
+    /*
+     * If we found a matching entry (user or group), print out the allowed
+     * permissions.
+     */
+    
+    if (entryName != NULL) {
+        int actualPerms = foundPerms & maskPerms;
+        if (verbosity > 1)
+            printf("Actual perms calculated=%d\n", actualPerms);
+        printf("%-12s", entryType);
+        printf("%-9s", entryName);
+        printf("%c", ((actualPerms & 4) == 4) ? 'r' : '-');
+        printf("%c", ((actualPerms & 2) == 2) ? 'w' : '-');
+        printf("%c", ((actualPerms & 1) == 1) ? 'x' : '-');
+
+        printf("\n");
+        exit(EXIT_SUCCESS);
+    } else {
+        exit(EXIT_FAILURE);
+    }
 }

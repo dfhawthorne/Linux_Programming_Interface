@@ -55,3 +55,7 @@ dkms.conf
 *.dat
 *.txt
 *.lst
+
+# Compiled commands
+17_Access_Control_Lists/acl_view
+17_Access_Control_Lists/acl_view_query

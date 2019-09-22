@@ -11,7 +11,7 @@
 #include <acl/libacl.h>
 #include <sys/acl.h>
 #include "ugid_functions.h"
-#include "tlpi.h"
+#include "tlpi_hdr.h"
 
 static void
 usageError(char *progName)
