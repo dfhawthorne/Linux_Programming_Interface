@@ -24,10 +24,6 @@ char *realpath(const char *pathname, char *resolved_path)
     struct stat statbuf;
     ssize_t numBytes;
     
-    resolved_path = malloc(PATH_MAX);
-    if (resolved_path == NULL)
-        return NULL;
-    
     if (lstat(pathname, &statbuf) == -1)
         return NULL;
     
@@ -38,7 +34,8 @@ char *realpath(const char *pathname, char *resolved_path)
         resolved_path[numBytes] = '\0';          /* Add terminating null byte */
         return resolved_path;
     } else {
-        return NULL; /* Not implemented yet */
+        strcpy(resolved_path, pathname);
+        return resolved_path; /* Not implemented yet */
     }
 }
 
@@ -52,19 +49,12 @@ main(int argc, char *argv[])
 {
     struct stat statbuf;
     char buf[BUF_SIZE];
-    ssize_t numBytes;
 
     if (argc != 2 || strcmp(argv[1], "--help") == 0)
         usageErr("%s pathname\n", argv[0]);
 
     if (lstat(argv[1], &statbuf) == -1)
         errExit("lstat");
-
-    numBytes = readlink(argv[1], buf, BUF_SIZE - 1);
-    if (numBytes == -1)
-        errExit("readlink");
-    buf[numBytes] = '\0';                       /* Add terminating null byte */
-    printf("readlink: %s --> %s\n", argv[1], buf);
 
     if (realpath(argv[1], buf) == NULL)
         errExit("realpath");
