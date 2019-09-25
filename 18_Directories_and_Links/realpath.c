@@ -23,19 +23,29 @@ char *realpath(const char *pathname, char *resolved_path)
 {
     struct stat statbuf;
     ssize_t numBytes;
+    char buf[BUF_SIZE],
+        cwd[BUF_SIZE];
     
     if (lstat(pathname, &statbuf) == -1)
         return NULL;
     
     if (S_ISLNK(statbuf.st_mode)) {
-        numBytes = readlink(pathname, resolved_path, BUF_SIZE - 1);
+        numBytes = readlink(pathname, buf, BUF_SIZE - 1);
         if (numBytes == -1)
             return NULL;
-        resolved_path[numBytes] = '\0';          /* Add terminating null byte */
-        return resolved_path;
+        buf[numBytes] = '\0';          /* Add terminating null byte */
     } else {
-        strcpy(resolved_path, pathname);
-        return resolved_path; /* Not implemented yet */
+        strcpy(buf, pathname);
+    }
+    
+    if (buf[0] != '/') {                /* Is it a relative path name ? */
+        if (getcwd(cwd, BUF_SIZE) == NULL)
+            return NULL;
+        strcpy(resolved_path, cwd);
+        resolved_path[strlen(cwd)] = '/';
+        strcpy(resolved_path + strlen(cwd) + 1, buf);
+    } else {
+        strcpy(resolved_path, buf);
     }
 }
 
