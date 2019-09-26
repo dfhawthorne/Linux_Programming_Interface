@@ -47,6 +47,57 @@ char *realpath(const char *pathname, char *resolved_path)
     } else {
         strcpy(resolved_path, buf);
     }
+    
+    /**************************************************************************\
+    * Need to cater for '//', '/../', and '/./' within pathnames. These lead   *
+    * the following edge conditions:                                           *
+    * (1) "/"                                                                  *
+    * (2) "/./"                                                                *
+    * (3) "//"                                                                 *
+    * (4) "/etc/.."                                                            *
+    * (5) "/."                                                                 *
+    * (6) "/etc/"                                                              *
+    \**************************************************************************/
+    
+    for (char *cp = resolved_path; *cp != '\0'; ) {
+        if (*cp++ != '/')
+            continue;
+        if (*cp == '\0')          /* Cannot look ahead */
+            break;
+        switch (*cp++) {
+            case '/':               /* Found '//' */
+                strcpy(cp-1, cp);   /* Eliminate extra '/' */
+                break;
+            case '.':               /* Found '/.' */
+                switch (*cp++) {
+                    case '/':       /* Found '/./' */
+                    case '\0':
+                        strcpy(cp-2, cp);
+                        break;
+                    case '.':       /* Found '/..' */
+                        if (*cp != '/' && *cp != '\0')
+                            break;
+                        /* Found '/../' */
+                        char *dp;
+                        for (dp = cp - 5; *dp != '/'; --dp)
+                            ;
+                        strcpy(dp + 1, cp);
+                        break;
+                    default:
+                        break;
+                }
+            default:
+                break;
+        }
+    }
+    
+    /* Remove trailing '/', if any */
+    
+    int len = strlen(resolved_path);
+    if (resolved_path[len-1] == '/' && len > 1)
+        resolved_path[len-1] = '\0';
+    
+    return resolved_path;
 }
 
 /*
