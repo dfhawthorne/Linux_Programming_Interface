@@ -4,9 +4,6 @@
 * The realpath() library function derefences all symbolic links in pathname (a  *
 * null-terminated string) and resolves all references to /. and /.. to produce  *
 * null-terminated string containing the corresponding absolute pathname.        *
-*                                                                               *
-* char *realpath(const char *pathname, char *resolved_path);                    *
-*     returns pointer to resolved pathname on success, or NULL on error.        *
 ********************************************************************************/
 
 #include <sys/stat.h>
@@ -19,6 +16,11 @@
 #define BUF_SIZE PATH_MAX
 
 
+/********************************************************************************
+* char *realpath(const char *pathname, char *resolved_path);                    *
+*     returns pointer to resolved pathname on success, or NULL on error.        *
+********************************************************************************/
+
 char *realpath(const char *pathname, char *resolved_path)
 {
     struct stat statbuf;
@@ -26,10 +28,29 @@ char *realpath(const char *pathname, char *resolved_path)
     char buf[BUF_SIZE],
         cwd[BUF_SIZE];
     
-    if (lstat(pathname, &statbuf) == -1)
+    /*
+     * Walks the path name back up one (1) level, stopping at the root.
+     */
+    
+    char *goUpOneLevel(char *cp, char *resolved_path)
+    {
+        char *dp;
+        
+        for (dp = cp - 1; dp > resolved_path && *dp != '/'; dp--)
+            ;
+        
+        if (dp > resolved_path)
+        {
+            return dp;
+        } else {
+            return resolved_path;
+        }
+    }   /* goUpOneLevel */
+    
+    if ((lstat(pathname, &statbuf) == -1) && (errno != ENOENT))
         return NULL;
     
-    if (S_ISLNK(statbuf.st_mode)) {
+    if ((errno != ENOENT) && (S_ISLNK(statbuf.st_mode))) {
         numBytes = readlink(pathname, buf, BUF_SIZE - 1);
         if (numBytes == -1)
             return NULL;
@@ -59,29 +80,40 @@ char *realpath(const char *pathname, char *resolved_path)
     * (6) "/etc/"                                                              *
     \**************************************************************************/
     
-    for (char *cp = resolved_path; *cp != '\0'; ) {
-        if (*cp++ != '/')
+    char *lp = NULL,                 /* Look-ahead pointer */
+        *cp = NULL;                 /* Current pointer */
+    
+    for (cp = resolved_path; *cp != '\0'; cp++) {
+        lp = cp;
+        if (*lp++ != '/')
             continue;
-        if (*cp == '\0')          /* Cannot look ahead */
+        if (*lp == '\0')             /* Cannot look ahead */
             break;
-        switch (*cp++) {
+        switch (*lp++) {
             case '/':               /* Found '//' */
-                strcpy(cp-1, cp);   /* Eliminate extra '/' */
+                strcpy(cp+1, lp);   /* Eliminate extra '/' */
                 break;
             case '.':               /* Found '/.' */
-                switch (*cp++) {
+                switch (*lp++) {
+                    case '\0':      /* Founf '/.\0' */
+                        *++cp = '\0';
+                        break;
                     case '/':       /* Found '/./' */
-                    case '\0':
-                        strcpy(cp-2, cp);
+                        strcpy(cp+1, lp);
                         break;
                     case '.':       /* Found '/..' */
-                        if (*cp != '/' && *cp != '\0')
-                            break;
-                        /* Found '/../' */
-                        char *dp;
-                        for (dp = cp - 5; *dp != '/'; --dp)
-                            ;
-                        strcpy(dp + 1, cp);
+                        switch (*lp) {
+                            case '\0':  /* Found '/..\0' */
+                                cp = goUpOneLevel(cp, resolved_path);
+                                *++cp = '\0';
+                                break;
+                            case '/':  /* Found '/../' */
+                                cp = goUpOneLevel(cp, resolved_path);
+                                strcpy(cp+1, lp+1);
+                                break;
+                            default:
+                                break;
+                        }
                         break;
                     default:
                         break;
@@ -89,6 +121,12 @@ char *realpath(const char *pathname, char *resolved_path)
             default:
                 break;
         }
+        /*
+         * Check if current position contains a NULL char after any string
+         * munging
+         */
+        if (*cp == '\0')
+            break;
     }
     
     /* Remove trailing '/', if any */
@@ -113,9 +151,6 @@ main(int argc, char *argv[])
 
     if (argc != 2 || strcmp(argv[1], "--help") == 0)
         usageErr("%s pathname\n", argv[0]);
-
-    if (lstat(argv[1], &statbuf) == -1)
-        errExit("lstat");
 
     if (realpath(argv[1], buf) == NULL)
         errExit("realpath");
