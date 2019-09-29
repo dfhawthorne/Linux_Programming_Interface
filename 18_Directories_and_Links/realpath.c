@@ -80,14 +80,16 @@ char *realpath(const char *pathname, char *resolved_path)
     * (6) "/etc/"                                                              *
     \**************************************************************************/
     
-    char *lp = NULL,                 /* Look-ahead pointer */
+    char *lp = NULL,                /* Look-ahead pointer */
         *cp = NULL;                 /* Current pointer */
     
-    for (cp = resolved_path; *cp != '\0'; cp++) {
+    for (cp = resolved_path; *cp != '\0'; ) {
         lp = cp;
-        if (*lp++ != '/')
+        if (*lp++ != '/') {
+            cp++;
             continue;
-        if (*lp == '\0')             /* Cannot look ahead */
+        }
+        if (*lp == '\0')            /* Cannot look ahead */
             break;
         switch (*lp++) {
             case '/':               /* Found '//' */
@@ -112,13 +114,17 @@ char *realpath(const char *pathname, char *resolved_path)
                                 strcpy(cp+1, lp+1);
                                 break;
                             default:
+                                cp++;
                                 break;
                         }
                         break;
                     default:
+                        cp++;
                         break;
                 }
+                break;
             default:
+                cp++;
                 break;
         }
         /*
