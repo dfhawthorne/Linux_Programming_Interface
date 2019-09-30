@@ -46,6 +46,28 @@ char *realpath(const char *pathname, char *resolved_path)
             return resolved_path;
         }
     }   /* goUpOneLevel */
+
+    /*
+     * Checks existence of directory
+     */
+
+    int validateDirectory(const char * const cp, const char * const resolved_path)
+    {
+        struct stat statbuf;
+        char buf[BUF_SIZE];
+        int len;
+        int result;
+        
+        len = cp - resolved_path;
+
+        if (len == 0) return 0;
+
+        strncpy(buf, resolved_path, len);
+        
+        result = lstat(buf, &statbuf);
+        /* fprintf(stderr, "buf='%s', result=%d\n", buf, result); */
+        return result;
+    }   /* validateDirectory */
     
     if ((lstat(pathname, &statbuf) == -1) && (errno != ENOENT))
         return NULL;
@@ -98,18 +120,34 @@ char *realpath(const char *pathname, char *resolved_path)
             case '.':               /* Found '/.' */
                 switch (*lp++) {
                     case '\0':      /* Founf '/.\0' */
+                        if (validateDirectory(cp, resolved_path) == -1) {
+                            resolved_path[0] = '\0';
+                            return NULL;
+                        }
                         *++cp = '\0';
                         break;
                     case '/':       /* Found '/./' */
+                        if (validateDirectory(cp, resolved_path) == -1) {
+                            resolved_path[0] = '\0';
+                            return NULL;
+                        }
                         strcpy(cp+1, lp);
                         break;
                     case '.':       /* Found '/..' */
                         switch (*lp) {
                             case '\0':  /* Found '/..\0' */
+                                if (validateDirectory(cp, resolved_path) == -1) {
+                                    resolved_path[0] = '\0';
+                                    return NULL;
+                                }
                                 cp = goUpOneLevel(cp, resolved_path);
                                 *++cp = '\0';
                                 break;
                             case '/':  /* Found '/../' */
+                                if (validateDirectory(cp, resolved_path) == -1) {
+                                    resolved_path[0] = '\0';
+                                    return NULL;
+                                }
                                 cp = goUpOneLevel(cp, resolved_path);
                                 strcpy(cp+1, lp+1);
                                 break;
@@ -124,6 +162,13 @@ char *realpath(const char *pathname, char *resolved_path)
                 }
                 break;
             default:
+                /*
+                 * Validate current directory is valid before descending
+                 */
+                if (validateDirectory(cp, resolved_path) == -1) {
+                    resolved_path[0] = '\0';
+                    return NULL;
+                }
                 cp++;
                 break;
         }
@@ -141,7 +186,8 @@ char *realpath(const char *pathname, char *resolved_path)
     if (resolved_path[len-1] == '/' && len > 1)
         resolved_path[len-1] = '\0';
     
-    return resolved_path;
+    return resolved_path; 
+
 }
 
 /*
@@ -158,9 +204,15 @@ main(int argc, char *argv[])
     if (argc != 2 || strcmp(argv[1], "--help") == 0)
         usageErr("%s pathname\n", argv[0]);
 
-    if (realpath(argv[1], buf) == NULL)
-        errExit("realpath");
-    printf("realpath: %s --> %s\n", argv[1], buf);
-
-    exit(EXIT_SUCCESS);
+    if (realpath(argv[1], buf) == NULL) {
+        if (errno == ENOENT) {
+            fprintf(stderr, "realpath: %s: No such file or directory\n", argv[1]);
+            printf("realpath: %s --> \n", argv[1]);
+        } else {
+            errExit("realpath");
+        }
+    } else {
+        printf("realpath: %s --> %s\n", argv[1], buf);
+        exit(EXIT_SUCCESS);
+    }
 }

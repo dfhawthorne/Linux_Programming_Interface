@@ -25,9 +25,10 @@ test_cases="${test_cases} //etc/..//./.. //etc/..//./../"
 # Run each test case
 for tc in ${test_cases}
 do  
-    printf "Test case: '%s' " ${tc}
-    printf -v exp_result "realpath: %s --> %s" ${tc} $(realpath ${tc})
+    real_result=$(realpath ${tc})
     act_result=$(./realpath ${tc})
+    printf "Test case: '%s' " ${tc}
+    printf -v exp_result "realpath: %s --> %s" ${tc} ${real_result}
     if [ "$act_result" = "$exp_result" ]
         then printf "PASSED\n"
         else printf "FAILED\n\tExpected: %s\n\tActual:   %s\n" "$exp_result" "$act_result"
