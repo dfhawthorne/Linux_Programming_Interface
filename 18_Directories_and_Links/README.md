@@ -15,3 +15,22 @@ My solution is in `realpath.c`.
 
 1. Use `./make_realpath.sh` to compile and link this code.
 1. Use `./test_realpath.sh` to test this solution.
+
+## Exercise 18-4
+
+My solution is in `list_files.c`.
+
+1. Use `./make_list_files.sh` to compile and link this code.
+1. Use `./list_files` to execute this solution.
+
+__NOTE__: The compilation will give the following messages:
+```
+list_files.c: In function ‘listFiles’:
+list_files.c:42:9: warning: ‘readdir_r’ is deprecated [-Wdeprecated-declarations]
+         if ((readdir_r(dirp, dp, &result) != 0) || (result == NULL))
+         ^~
+In file included from list_files.c:11:0:
+/usr/include/dirent.h:183:12: note: declared here
+ extern int readdir_r (DIR *__restrict __dirp,
+            ^~~~~~~~~
+```

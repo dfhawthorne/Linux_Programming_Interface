@@ -9,14 +9,21 @@
 \*************************************************************************/
 
 #include <dirent.h>
+#include <stddef.h>
 #include "tlpi_hdr.h"
 
 static void             /* List all files in directory 'dirpath' */
 listFiles(const char *dirpath)
 {
     DIR *dirp;
-    struct dirent *dp;
+    struct dirent *dp = NULL;
     Boolean isCurrent;          /* True if 'dirpath' is "." */
+    size_t len;
+    
+    len = offsetof(struct dirent, d_name) + NAME_MAX + 1;
+    dp = malloc(len);
+    if (dp == NULL)
+        errExit("malloc");
 
     isCurrent = strcmp(dirpath, ".") == 0;
 
@@ -29,9 +36,10 @@ listFiles(const char *dirpath)
     /* For each entry in this directory, print directory + filename */
 
     for (;;) {
+        struct dirent *result;
+        
         errno = 0;              /* To distinguish error from end-of-directory */
-        dp = readdir(dirp);
-        if (dp == NULL)
+        if ((readdir_r(dirp, dp, &result) != 0) || (result == NULL))
             break;
 
         if (strcmp(dp->d_name, ".") == 0 || strcmp(dp->d_name, "..") == 0)
@@ -42,8 +50,14 @@ listFiles(const char *dirpath)
         printf("%s\n", dp->d_name);
     }
 
-    if (errno != 0)
+    if (errno != 0) {
+        if (dp != NULL)
+            free(dp);
         errExit("readdir");
+    }
+    
+    if (dp != NULL)
+        free(dp);
 
     if (closedir(dirp) == -1)
         errMsg("closedir");
