@@ -1,2 +1,2 @@
 #!/bin/bash
-gcc -o getcwd getcwd.c
+gcc -o getcwd getcwd.c $*
