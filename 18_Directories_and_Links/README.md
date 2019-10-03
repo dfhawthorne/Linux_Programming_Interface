@@ -6,21 +6,21 @@ The real solution is [here](http://man7.org/tlpi/code/online/dist/dirs_links/bad
 
 My solution is in `ex18_2.c`.
 
-1. Use `./make_ex18_2.sh` to compile and link the code.
+1. Use `make ex18_2` to compile and link the code.
 1. Use `./ex18_2` to execute this solution.
 
 ## Exercise 18-3
 
 My solution is in `realpath.c`.
 
-1. Use `./make_realpath.sh` to compile and link this code.
+1. Use `make realpath` to compile and link this code.
 1. Use `./test_realpath.sh` to test this solution.
 
 ## Exercise 18-4
 
 My solution is in `list_files.c`.
 
-1. Use `./make_list_files.sh` to compile and link this code.
+1. Use `make list_files` to compile and link this code.
 1. Use `./list_files` to execute this solution.
 
 __NOTE__: The compilation will give the following messages:
@@ -34,3 +34,10 @@ In file included from list_files.c:11:0:
  extern int readdir_r (DIR *__restrict __dirp,
             ^~~~~~~~~
 ```
+
+## Exercise 18-5
+
+My solution is in `getcwd.c`. (Build is in progress)
+
+1. Use `make getcwd` to compile and link this program.
+1. Use `./getcwd` to execute this solution.
