@@ -41,3 +41,10 @@ My solution is in `getcwd.c`. (Build completed)
 
 1. Use `make getcwd` to compile and link this program.
 1. Use `./getcwd` to execute this solution.
+
+## Exercise 18-6
+
+Solution has already been [published](http://man7.org/tlpi/code/online/dist/dirs_links/nftw_dir_tree.c.html). The downloaded file is compiled and executed as follows:
+
+1. Use `make nftw_dir_tree` to compile and link this program.
+1. Use `./nftw_dir_tree -d ..` to execute this solution.
