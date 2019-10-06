@@ -37,7 +37,7 @@ In file included from list_files.c:11:0:
 
 ## Exercise 18-5
 
-My solution is in `getcwd.c`. (Build is in progress)
+My solution is in `getcwd.c`. (Build completed)
 
 1. Use `make getcwd` to compile and link this program.
 1. Use `./getcwd` to execute this solution.

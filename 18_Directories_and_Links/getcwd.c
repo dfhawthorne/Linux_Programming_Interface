@@ -64,30 +64,77 @@
 
 char *getcwd(char *buf, size_t size)
 {
-    int cwdFD;          /* Current working directory file descriptor */
-    struct stat cwdStat;    /* Information about current directory */
+    int cwdFD;                  /* Current working directory file descriptor  */
+    struct stat cwdStat;        /* Information about current directory        */
     
     #ifdef DEBUG
-    printf("getcwd started\n");
+    fprintf(stderr, "getcwd started\n");
     #endif
 
     /**************************************************************************\
     * Returns name matching device and i-node                                  *
     \**************************************************************************/
     
-    char *getName(const char * dirpath, const dev_t device, const ino_t inode)
+    char *getParentName(const dev_t device, const ino_t inode)
     {
-        DIR *dir;
-        struct dirent *entry;
-        char *fileName;
+        DIR *dir;               /* Parent directory                           */
+        struct dirent *entry;   /* current entry in parent sirectory          */
+        char *fileName;         /* name of parent                             */
+        struct stat parentStat; /* Information about parent directory         */
         
         #ifdef DEBUG
-        printf("getName started: dir path='%s' inode=%ld\n", dirpath, (long)inode);
+        fprintf(stderr, "getParentName started: inode=%ld\n", (long)inode);
         #endif
         
-        dir = opendir(dirpath);
-        if (dir == NULL)
+        /**********************************************************************\
+        * Get information about parent directory                               *
+        * If the device and inode match, then we have reached the root.        *
+        \**********************************************************************/
+        
+        int statRC;
+        if ((statRC = stat("..", &parentStat)) == 0) {
+            if (( parentStat.st_dev == device ) &&
+                ( parentStat.st_ino == inode  )) {
+                #ifdef DEBUG
+                fprintf(stderr, "getParentName: reached root\n");
+                #endif
+                char *result = malloc(PATH_MAX + 1);
+                if (result == NULL) {
+                    #ifdef DEBUG
+                    int saveErrno = errno;
+                    perror("getParentName: malloc of result failed");
+                    errno = saveErrno;
+                    #endif
+                    return NULL;
+                }
+                result[0] = '\0';
+                return result;
+            }
+        } else {
+            #ifdef DEBUG
+            int saveErrno = errno;
+            fprintf(stderr, "getParentName: stat of parent directory returned %d\n", statRC);
+            perror("getParentName: stat of parent directory failed");
+            errno = saveErrno;
+            #endif
             return NULL;
+        }
+        
+        /**********************************************************************\
+        * Find the matching inode in the parent directory.                     *
+        \**********************************************************************/
+        
+        chdir("..");        /* Change to parent directory                     */
+        
+        dir = opendir(".");
+        if (dir == NULL) {
+            #ifdef DEBUG
+            int saveErrno = errno;
+            perror("getParentName: open parent directory failed");
+            errno = saveErrno;
+            #endif
+            return NULL;
+        }
         
         for (;;)
         {
@@ -97,38 +144,73 @@ char *getcwd(char *buf, size_t size)
                 break;
             
             #ifdef DEBUG
-            printf("getName: inode=%ld name='%s'\n", (long)(entry -> d_ino), entry -> d_name);
+            fprintf(stderr, "getParentName: inode=%ld name='%s'\n", (long)(entry -> d_ino), entry -> d_name);
             #endif
             
             if (entry -> d_ino == inode) {
                 int size = strlen(entry -> d_name) + 1;
             
                 #ifdef DEBUG
-                printf("getName: MATCH inode=%ld name='%s' size=%d\n", (long)(entry -> d_ino), entry -> d_name, size);
+                fprintf(stderr, "getParentName: MATCH inode=%ld name='%s' size=%d\n", (long)(entry -> d_ino), entry -> d_name, size);
                 #endif
                 
                 fileName = (char *)malloc(size);
-                if (fileName != NULL)
+                if (fileName != NULL) {
                     strcpy(fileName, entry -> d_name);
+                #ifdef DEBUG
+                } else {
+                    int saveErrno = errno;
+                    perror("getParentName: malloc for parent directory name failed");
+                    errno = saveErrno;
+                #endif
+                }
+
                 break;
             }
         }
         
         #ifdef DEBUG
-        printf("getName: About to close dir\n");
+        fprintf(stderr, "getParentName: About to close dir\n");
         #endif
         
         int saveErrno = errno;
         closedir(dir);
-
+        
         #ifdef DEBUG
-        printf("getName ended: errno=%d fileName='%s'\n", saveErrno, (fileName == NULL) ? "(NULL)" : fileName );
+        fprintf(stderr,
+                "getParentName closed directory: errno=%d fileName='%s'\n",
+                saveErrno,
+                (fileName == NULL) ? "(NULL)" : fileName
+               );
+        #endif
+
+        char *currentWorkingDir = getParentName(parentStat.st_dev, parentStat.st_ino);
+        if (currentWorkingDir == NULL) {
+            #ifdef DEBUG
+            saveErrno = errno;
+            perror("getParentName called failed");
+            errno = saveErrno;
+            #endif
+            return NULL;
+        }
+        
+        int offset = strlen(currentWorkingDir);
+        currentWorkingDir[offset++] = '/';
+        strcpy(currentWorkingDir+offset, fileName);
+        
+        #ifdef DEBUG
+        fprintf(stderr,
+                "getParentName ended: errno=%d fileName='%s' cwd='%s'\n",
+                saveErrno,
+                (fileName == NULL) ? "(NULL)" : fileName,
+                (currentWorkingDir == NULL) ? "NULL" : currentWorkingDir
+               );
         #endif
 
         errno = saveErrno;
         
-        return fileName;
-    }   /* getName */
+        return currentWorkingDir;
+    }   /* getParentName */
     
     
     cwdFD = open(".", O_RDONLY);    /* Remember we are */
@@ -144,7 +226,7 @@ char *getcwd(char *buf, size_t size)
     \**************************************************************************/
     
     char *result = NULL;
-    char *cwdStr = getName( "..", cwdStat.st_dev, cwdStat.st_ino );
+    char *cwdStr = getParentName( cwdStat.st_dev, cwdStat.st_ino );
     
     if (cwdStr != NULL) {
         if (strlen(cwdStr) > size) {
@@ -189,7 +271,7 @@ int main()
             free(buf);
     }
     
-    size = NAME_MAX + 1;
+    size = PATH_MAX + 1;
     if ((ans = getcwd(buf, size)) == NULL)
     {
         perror("Error in max size getcwd with null buffer");
