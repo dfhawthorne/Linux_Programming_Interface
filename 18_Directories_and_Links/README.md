@@ -48,3 +48,10 @@ Solution has already been [published](http://man7.org/tlpi/code/online/dist/dirs
 
 1. Use `make nftw_dir_tree` to compile and link this program.
 1. Use `./nftw_dir_tree -d ..` to execute this solution.
+
+## Exercise 18-7
+
+My solution is in `ex18_7.c`.
+
+1. Use `make ex18_7` to compile and link the code.
+1. Use `./ex18_7` to execute this solution.
