@@ -3,7 +3,7 @@
 # ------------------------------------------------------------
 
 .PHONY : all
-all : getcwd ex18_2 list_files nftw_dir_tree realpath ex18_7
+all : getcwd ex18_2 list_files nftw_dir_tree realpath ex18_7 ex18_8
 
 getcwd : getcwd.c
 	gcc -o getcwd getcwd.c
@@ -20,6 +20,8 @@ nftw_dir_tree: nftw_dir_tree.c
 realpath : realpath.c
 	gcc -o realpath -I ../03_System_Programming_Concepts/ realpath.c ../03_System_Programming_Concepts/error_functions.c
 
-
 ex18_7 : ex18_7.c 
 	gcc -o ex18_7 ex18_7.c
+
+ex18_8 : ex18_8.c 
+	gcc -o ex18_8 ex18_8.c
