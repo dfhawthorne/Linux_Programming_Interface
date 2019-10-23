@@ -56,6 +56,9 @@ dkms.conf
 *.txt
 *.lst
 
+# Auxiliary files
+*/comments.py
+
 # Compiled commands
 17_Access_Control_Lists/acl_view
 17_Access_Control_Lists/acl_view_query
