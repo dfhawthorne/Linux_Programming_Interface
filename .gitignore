@@ -60,6 +60,7 @@ dkms.conf
 */comments.py
 
 # Compiled commands
+04_File_IO_The_Universal_IO_Model/tee
 17_Access_Control_Lists/acl_view
 17_Access_Control_Lists/acl_view_query
 18_Directories_and_Links/realpath
