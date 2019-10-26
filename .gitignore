@@ -61,6 +61,7 @@ dkms.conf
 
 # Compiled commands
 04_File_IO_The_Universal_IO_Model/tee
+04_File_IO_The_Universal_IO_Model/cp
 17_Access_Control_Lists/acl_view
 17_Access_Control_Lists/acl_view_query
 18_Directories_and_Links/realpath

@@ -3,7 +3,10 @@
 # ------------------------------------------------------------------------------
 
 .PHONY : all
-all : tee
+all : tee cp
+
+cp : cp.c
+	gcc -o cp cp.c
 
 tee : tee.c
 	gcc -o tee tee.c
