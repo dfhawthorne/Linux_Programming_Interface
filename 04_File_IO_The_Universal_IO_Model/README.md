@@ -18,4 +18,5 @@ __No__ long options are catered for.
 My solution is in `cp.c`.
 
 1. Use `make cp` to compile and link this code.
-1. Use `./test_cp.sh` to test this solution. (Not yet implemented.)
+1. Use `make seek_io` to compile and link the code to make a sparse file.
+1. Use `./test_cp.sh` to test this solution.

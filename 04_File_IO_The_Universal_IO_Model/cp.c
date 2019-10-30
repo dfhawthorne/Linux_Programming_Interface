@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
     while ((numBytes = read(iFile, iBuffer, bufferSize)) > 0) {
         char *bp = (char *)iBuffer;
         int i;
-        for (int i = 0; (i < numBytes) && (*bp == '\0'); i++, bp++)
+        for (i = 0; (i < numBytes) && (*bp == '\0'); i++, bp++)
             ;
         if (i == numBytes) {
             if (lseek(oFile, numBytes, SEEK_CUR) == -1) {
