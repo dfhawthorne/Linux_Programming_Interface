@@ -3,165 +3,108 @@
 * NAME                                                                         *
 *        cp - copy files and directories                                       *
 *                                                                              *
-* SYNOPSIS                                                                     *
-*        cp [OPTION]... [-T] SOURCE DEST                                       *
-*        cp [OPTION]... SOURCE... DIRECTORY                                    *
-*        cp [OPTION]... -t DIRECTORY SOURCE...                                 *
-*                                                                              *
-* DESCRIPTION                                                                  *
-*        Copy SOURCE to DEST, or multiple SOURCE(s) to DIRECTORY.              *
-*                                                                              *
-*        Mandatory  arguments  to  long  options  are  mandatory for short     *
-*        options too.                                                          *
-*                                                                              *
-*        -a, --archive                                                         *
-*               same as -dR --preserve=all                                     *
-*                                                                              *
-*        --attributes-only                                                     *
-*               don't copy the file data, just the attributes                  *
-*                                                                              *
-*        --backup[=CONTROL]                                                    *
-*               make a backup of each existing destination file                *
-*                                                                              *
-*        -b     like --backup but does not accept an argument                  *
-*                                                                              *
-*        --copy-contents                                                       *
-*               copy contents of special files when recursive                  *
-*                                                                              *
-*        -d     same as --no-dereference --preserve=links                      *
-*                                                                              *
-*        -f, --force                                                           *
-*               if an existing destination file cannot be  opened,  remove     *
-*               it  and  try  again  (this  option  is ignored when the -n     *
-*               option is also used)                                           *
-*                                                                              *
-*        -i, --interactive                                                     *
-*               prompt before overwrite (overrides a previous -n option)       *
-*                                                                              *
-*        -H     follow command-line symbolic links in SOURCE                   *
-*                                                                              *
-*        -l, --link                                                            *
-*               hard link files instead of copying                             *
-*                                                                              *
-*        -L, --dereference                                                     *
-*               always follow symbolic links in SOURCE                         *
-*                                                                              *
-*        -n, --no-clobber                                                      *
-*               do not overwrite an existing file (overrides a previous -i     *
-*               option)                                                        *
-*                                                                              *
-*        -P, --no-dereference                                                  *
-*               never follow symbolic links in SOURCE                          *
-*                                                                              *
-*        -p     same as --preserve=mode,ownership,timestamps                   *
-*                                                                              *
-*        --preserve[=ATTR_LIST]                                                *
-*               preserve  the  specified  attributes (default: mode,ownerâ   *
-*               ship,timestamps), if possible additional attributes:  conâ   *
-*               text, links, xattr, all                                        *
-*                                                                              *
-*        --no-preserve=ATTR_LIST                                               *
-*               don't preserve the specified attributes                        *
-*                                                                              *
-*        --parents                                                             *
-*               use full source file name under DIRECTORY                      *
-*                                                                              *
-*        -R, -r, --recursive                                                   *
-*               copy directories recursively                                   *
-*                                                                              *
-*        --reflink[=WHEN]                                                      *
-*               control clone/CoW copies. See below                            *
-*                                                                              *
-*        --remove-destination                                                  *
-*               remove each existing destination file before attempting to     *
-*               open it (contrast with --force)                                *
-*                                                                              *
-*        --sparse=WHEN                                                         *
-*               control creation of sparse files. See below                    *
-*                                                                              *
-*        --strip-trailing-slashes                                              *
-*               remove any trailing slashes from each SOURCE argument          *
-*                                                                              *
-*        -s, --symbolic-link                                                   *
-*               make symbolic links instead of copying                         *
-*                                                                              *
-*        -S, --suffix=SUFFIX                                                   *
-*               override the usual backup suffix                               *
-*                                                                              *
-*        -t, --target-directory=DIRECTORY                                      *
-*               copy all SOURCE arguments into DIRECTORY                       *
-*                                                                              *
-*        -T, --no-target-directory                                             *
-*               treat DEST as a normal file                                    *
-*                                                                              *
-*        -u, --update                                                          *
-*               copy only when the SOURCE file is newer than the  destinaâ   *
-*               tion file or when the destination file is missing              *
-*                                                                              *
-*        -v, --verbose                                                         *
-*               explain what is being done                                     *
-*                                                                              *
-*        -x, --one-file-system                                                 *
-*               stay on this file system                                       *
-*                                                                              *
-*        -Z     set  SELinux  security  context  of  destination  file  to     *
-*               default type                                                   *
-*                                                                              *
-*        --context[=CTX]                                                       *
-*               like -Z, or if CTX is specified then set  the  SELinux  or     *
-*               SMACK security context to CTX                                  *
-*                                                                              *
-*        --help display this help and exit                                     *
-*                                                                              *
-*        --version                                                             *
-*               output version information and exit                            *
-*                                                                              *
-*        By default, sparse SOURCE files are detected by a crude heuristic     *
-*        and the corresponding DEST file is made sparse as well.  That  is     *
-*        the  behavior selected by --sparse=auto.  Specify --sparse=always     *
-*        to create a sparse DEST file whenever the SOURCE file contains  a     *
-*        long  enough  sequence  of  zero  bytes.   Use  --sparse=never to     *
-*        inhibit creation of sparse files.                                     *
-*                                                                              *
-*        When --reflink[=always] is specified, perform a lightweight copy,     *
-*        where  the data blocks are copied only when modified.  If this is     *
-*        not possible the copy fails, or if --reflink=auto  is  specified,     *
-*        fall back to a standard copy.                                         *
-*                                                                              *
-*        The  backup  suffix  is  '~',  unless  set  with --suffix or SIMâ   *
-*        PLE_BACKUP_SUFFIX.  The version control method  may  be  selected     *
-*        via  the  --backup option or through the VERSION_CONTROL environâ   *
-*        ment variable.  Here are the values:                                  *
-*                                                                              *
-*        none, off                                                             *
-*               never make backups (even if --backup is given)                 *
-*                                                                              *
-*        numbered, t                                                           *
-*               make numbered backups                                          *
-*                                                                              *
-*        existing, nil                                                         *
-*               numbered if numbered backups exist, simple otherwise           *
-*                                                                              *
-*        simple, never                                                         *
-*               always make simple backups                                     *
-*                                                                              *
-*        As a special case, cp makes a backup of SOURCE when the force and     *
-*        backup  options  are  given and SOURCE and DEST are the same name     *
-*        for an existing, regular file.                                        *
-*                                                                              *
+* Copies sparse files.                                                         *
 \******************************************************************************/
 
 
 #include <errno.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
-extern int optind, opterr, optopt;
-extern char *optarg;
-
 int main(int argc, char *argv[])
 {
-    exit(0);
+    /**************************************************************************\
+    * Check passed arguments                                                   *
+    \**************************************************************************/
+    
+    if (argc < 3) {
+        fprintf(stderr, "Usage %s <in_file> <out_file>\n", argv[0]);
+        exit(1);
+    }
+    
+    /**************************************************************************\
+    * Open input file, get vital statistics, and allocate input buffer based   *
+    * on physical block size.                                                  *
+    \**************************************************************************/
+    
+    int iFile = open(argv[1], O_RDONLY);
+    if (iFile == -1) {
+        perror("CP: Unable to open input file");
+        exit(1);
+    }
+    
+    struct stat iFileStat;
+    int rc = fstat(iFile, &iFileStat);
+    if (rc == -1) {
+        perror("CP: Unable to stat input file");
+        close(iFile);
+        exit(1);
+    }
+    
+    size_t bufferSize = iFileStat.st_blksize;
+    void *iBuffer = malloc(bufferSize);
+    if (iBuffer == NULL) {
+        perror("CP: Unable to allocate input buffer");
+        close(iFile);
+        exit(1);
+    }
+    
+    /**************************************************************************\
+    * Open output file overwriting any existing data, and allowing read access *
+    * by anyone but restricting write access to the current user.              *
+    \**************************************************************************/
+    
+    int oFile = open(argv[2], O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+    if (oFile == -1) {
+        perror("CP: Unable to open output file");
+        free(iBuffer);
+        close(iFile);
+        exit(1);
+    }
+    
+    /**************************************************************************\
+    * Copy the input file to the output file                                   *
+    * If we encounter a physical block that is all zeroes, assume that we are  *
+    * in a sparse file.                                                        *
+    \**************************************************************************/
+    
+    int exitStatus = 0;
+    int numBytes = 0;
+    while ((numBytes = read(iFile, iBuffer, bufferSize)) > 0) {
+        char *bp = (char *)iBuffer;
+        int i;
+        for (int i = 0; (i < numBytes) && (*bp == '\0'); i++, bp++)
+            ;
+        if (i == numBytes) {
+            if (lseek(oFile, numBytes, SEEK_CUR) == -1) {
+                perror("CP: Unable to seek in output file");
+                exitStatus = 1;
+                break;
+            }
+        } else {
+            if (write(oFile, iBuffer, numBytes) == -1) {
+                perror("CP: Unable to write to output file");
+                exitStatus = 1;
+                break;
+            }
+        }
+    }
+    
+    if (numBytes == -1) {
+        perror("CP: Unable to read from input file");
+        exitStatus = 1;
+    }
+    
+    /**************************************************************************\
+    * Close all files and release all dynamic memory                           *
+    \**************************************************************************/
+
+    free(iBuffer);
+    close(iFile);
+    close(oFile);
+    
+    exit(exitStatus);
 }
