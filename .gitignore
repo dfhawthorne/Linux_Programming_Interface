@@ -64,6 +64,8 @@ dkms.conf
 04_File_IO_The_Universal_IO_Model/cp
 04_File_IO_The_Universal_IO_Model/seek_io
 05_File_IO_Further_Details/large_file
+05_File_IO_Further_Details/ex5_2
+05_File_IO_Further_Details/atomic_append
 17_Access_Control_Lists/acl_view
 17_Access_Control_Lists/acl_view_query
 18_Directories_and_Links/realpath

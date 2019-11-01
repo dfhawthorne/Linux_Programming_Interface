@@ -16,3 +16,12 @@ The expected response is similar to:
 Device: fd01h/64769d	Inode: 51643046    Links: 1
 Access: (0600/-rw-------)  Uid: ( 1000/ douglas)   Gid: ( 1000/ douglas)
 ```
+
+## Exercise 5-2
+
+My solution is in `ex5_2.c`.
+
+To build and test this solution:
+1. Use `make ex5_2` to compile and link this code.
+1. Use `./test_ex5_2.sh` to test this code.
+
