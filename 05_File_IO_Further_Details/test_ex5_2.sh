@@ -10,5 +10,6 @@ EOF
 
 printf "Contents of test file before running exercise 5-2\n"
 cat test.dat
+./ex5_2 test.dat
 printf "\nContents of test file after running exercise 5-2\n"
 cat test.dat

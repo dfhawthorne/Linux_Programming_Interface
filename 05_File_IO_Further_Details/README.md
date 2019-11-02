@@ -25,3 +25,16 @@ To build and test this solution:
 1. Use `make ex5_2` to compile and link this code.
 1. Use `./test_ex5_2.sh` to test this code.
 
+The expected output is:
+```
+Contents of test file before running exercise 5-2
+Line #1
+Line #2
+Now positioned at 0
+Now positioned at 38
+
+Contents of test file after running exercise 5-2
+Line #1
+Line #2
+Exercise 5-2 completedd
+```
