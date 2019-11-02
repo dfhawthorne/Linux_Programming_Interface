@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
 
 	int open_mode = O_CREAT | O_WRONLY;
 	mode_t access = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
-;
+
 	int append_mode  = 1;
 	
 	if ((argc > 3) && (*argv[3] == 'x'))

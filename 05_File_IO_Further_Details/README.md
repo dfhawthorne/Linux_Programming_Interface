@@ -50,9 +50,9 @@ To build and test this solution:
 The expected output is:
 ```
 Size of test file using O_APPEND
-test.dat               1997532
+test.dat               2000000
 Size of test file without using O_APPEND
-test.lst               1000115
+test.lst               1000089
 ```
 
-__Why is the size of `test.dat` not 2000000?__
+__The size of `test.lst` can very__
