@@ -55,4 +55,21 @@ Size of test file without using O_APPEND
 test.lst               1000089
 ```
 
-__The size of `test.lst` can very__
+__The size of `test.lst` can vary__
+
+## Exercise 5-4
+
+My solution is in `ex5_4.c`.
+
+To build and test this solution:
+1. Use `make ex5_4` to compile and link this code.
+1. Use `./ex5_4` to test this code.
+
+The expected output should be similar to:
+```
+FD (3) points to inode #51643046
+FD (4) points to inode #51643592
+FD (5) points to inode #51643046
+FD (6) points to inode #51643592
+FD (5) points to inode #51643592
+```
