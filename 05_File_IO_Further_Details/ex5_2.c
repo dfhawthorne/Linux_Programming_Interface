@@ -42,6 +42,8 @@ int main(int argc, char *argv[])
 	
 	new_offset = lseek(fd, 0, SEEK_CUR);
 	fprintf(stdout, "Now positioned at %ld\n", (long)new_offset);
+	
+	close(fd);
 
 	exit(0);
 }
