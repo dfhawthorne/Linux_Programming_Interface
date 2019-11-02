@@ -66,6 +66,7 @@ dkms.conf
 05_File_IO_Further_Details/large_file
 05_File_IO_Further_Details/ex5_2
 05_File_IO_Further_Details/atomic_append
+05_File_IO_Further_Details/ex5_4
 17_Access_Control_Lists/acl_view
 17_Access_Control_Lists/acl_view_query
 18_Directories_and_Links/realpath
