@@ -36,5 +36,23 @@ Now positioned at 38
 Contents of test file after running exercise 5-2
 Line #1
 Line #2
-Exercise 5-2 completedd
+Exercise 5-2 completed
 ```
+
+## Exercise 5-3
+
+My solution is in `atomic_append.c`.
+
+To build and test this solution:
+1. Use `make atomic_append` to compile and link this code.
+1. Use `./test_atomic_append.sh` to test this code.
+
+The expected output is:
+```
+Size of test file using O_APPEND
+test.dat               1997532
+Size of test file without using O_APPEND
+test.lst               1000115
+```
+
+__Why is the size of `test.dat` not 2000000?__
