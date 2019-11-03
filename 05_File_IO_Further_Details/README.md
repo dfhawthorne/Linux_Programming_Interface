@@ -122,3 +122,18 @@ The contents, after 4 writes, are:
 Giddayworld 
 ```
 
+## Exercise 5-7
+
+My solution is in `ex5_7.c`. This solution uses code from [t_read.c](http://man7.org/tlpi/code/online/dist/fileio/t_readv.c.html).
+
+To build and test this solution:
+1. Use `make ex5_7` to compile and link this code.
+1. Use `./ex5_7` to test this code.
+
+The expected output should be:
+```
+total bytes requested: 248; bytes written: 248
+Test write succeeded
+total bytes requested: 248; bytes read: 248
+Test read succeeded
+```
