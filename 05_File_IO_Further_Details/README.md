@@ -98,3 +98,27 @@ FD (3) points to inode #51643046, has a status of 0X8000, and an offset of 20000
 FD (4) points to inode #51643046, has a status of 0X8000, and an offset of 2000000
 ```
 
+## Exercise 5-6
+
+My solution is in `ex5_6.c`.
+
+To build and test this solution:
+1. Use `make ex5_6` to compile and link this code.
+1. Use `./ex5_6` to test this code.
+
+The expected output should be:
+```
+Now doing 1 writes
+The contents, after 1 writes, are:
+Hello,
+Now doing 2 writes
+The contents, after 2 writes, are:
+Hello,world 
+Now doing 3 writes
+The contents, after 3 writes, are:
+HELLO,world 
+Now doing 4 writes
+The contents, after 4 writes, are:
+Giddayworld 
+```
+
