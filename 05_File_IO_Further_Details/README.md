@@ -78,3 +78,23 @@ FD (5) points to inode #51643592
 Failed to duplicate fd #20: Bad file descriptor
 Failed to duplicate fd #20 as #19: Bad file descriptor
 ```
+
+## Exercise 5-5
+
+My solution is in `ex5_5.c`.
+
+To build and test this solution:
+1. Use `make ex5_5` to compile and link this code.
+1. Use `./ex5_5` to test this code.
+
+The expected output should be similar to:
+```
+Original file descriptor
+FD (3) points to inode #51643046, has a status of 0X8000, and an offset of 0
+Duplicate file descriptor
+FD (4) points to inode #51643046, has a status of 0X8000, and an offset of 0
+Both file descriptors after seeking to EOF
+FD (3) points to inode #51643046, has a status of 0X8000, and an offset of 2000000
+FD (4) points to inode #51643046, has a status of 0X8000, and an offset of 2000000
+```
+
