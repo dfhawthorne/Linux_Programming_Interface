@@ -90,11 +90,24 @@
 
 int my_dup(int oldfd)
 {
+	int old_status = fcntl(oldfd, F_GETFL);
+	if (old_status == -1)
+	{
+		errno = EBADF;
+		return -1;
+	}
 	return fcntl(oldfd, F_DUPFD, 0);
 }
 
 int my_dup2(int oldfd, int newfd)
 {
+	int old_status = fcntl(oldfd, F_GETFL);
+	if (old_status == -1)
+	{
+		errno = EBADF;
+		return -1;
+	}
+
 	int rc = close(newfd);
 	if ((rc == -1) && (errno != EBADF))
 	{
@@ -118,14 +131,50 @@ void desc_fd(int fd)
 int main(int argc, char *argv[])
 {
 	int fd1 = open("test.dat", O_RDONLY);
+	if (fd1 == -1)
+	{
+		perror("Failed to open test.dat");
+		exit(1);
+	}
+
 	int fd2 = open("test.lst", O_RDONLY);
+	if (fd2 == -1)
+	{
+		perror("Failed to open test.lst");
+		exit(1);
+	}
+	
 	int fd3 = my_dup(fd1);
+	if (fd3 == -1)
+	{
+		perror("Failed to file descriptor for test.dat");
+	}
+
 	int fd4 = my_dup(fd2);
+	if (fd4 == -1)
+	{
+		perror("Failed to file descriptor for test.lst");
+	}
+
+	printf("Original file descriptors\n");
 	desc_fd(fd1);
 	desc_fd(fd2);
+	printf("Duplicate file descriptors\n");
 	desc_fd(fd3);
 	desc_fd(fd4);
 	int fd5 = my_dup2(fd2, fd3);
+	printf("Reallocate file descriptor\n");
 	desc_fd(fd5);
+	int fd6 = my_dup(20);
+	if (fd6 == -1)
+	{
+		perror("Failed to duplicate fd #20");
+	}
+	int fd7 = my_dup2(20, 19);
+	if (fd7 == -1)
+	{
+		perror("Failed to duplicate fd #20 as #19");
+	}
+	
     exit(0);
 }

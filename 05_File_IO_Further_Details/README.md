@@ -67,9 +67,14 @@ To build and test this solution:
 
 The expected output should be similar to:
 ```
+Original file descriptors
 FD (3) points to inode #51643046
 FD (4) points to inode #51643592
+Duplicate file descriptors
 FD (5) points to inode #51643046
 FD (6) points to inode #51643592
+Reallocate file descriptor
 FD (5) points to inode #51643592
+Failed to duplicate fd #20: Bad file descriptor
+Failed to duplicate fd #20 as #19: Bad file descriptor
 ```
