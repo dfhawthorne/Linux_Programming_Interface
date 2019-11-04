@@ -70,6 +70,9 @@ dkms.conf
 05_File_IO_Further_Details/ex5_5
 05_File_IO_Further_Details/ex5_6
 05_File_IO_Further_Details/ex5_7
+06_Processes/mem_segments
+06_Processes/ex6_2
+06_Processes/ex6_3
 17_Access_Control_Lists/acl_view
 17_Access_Control_Lists/acl_view_query
 18_Directories_and_Links/realpath

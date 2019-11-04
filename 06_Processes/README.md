@@ -1,0 +1,18 @@
+# Chapter 6: Processes
+
+## Exercise 6-1
+
+The source code is downloaded from [mem_segments.c](http://man7.org/tlpi/code/online/dist/proc/mem_segments.c.html).
+
+To do the exercise:
+1. Use `make mem_segments` to compile and link the code.
+1. Use `ls -l mem_segments` to see the size of the code.
+
+The output should be similar to:
+```
+-rwxr-xr-x 1 douglas douglas 18848 Nov  4 11:22 mem_segments
+```
+
+The answer is given on p. 116:
+> ...The main reason for placing global and static variables that are initialized into a separate segment from those that are unitialized is that, __when a program is stored on disk, it is not necessary to allocate space for unitialized data.__ Instead, the executable merely needs to record the location and size required for the uninitialized data segment, and this space is allocated by the praogram loader at run time.
+
