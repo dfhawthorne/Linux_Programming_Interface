@@ -16,3 +16,14 @@ The output should be similar to:
 The answer is given on p. 116:
 > ...The main reason for placing global and static variables that are initialized into a separate segment from those that are unitialized is that, __when a program is stored on disk, it is not necessary to allocate space for unitialized data.__ Instead, the executable merely needs to record the location and size required for the uninitialized data segment, and this space is allocated by the praogram loader at run time.
 
+## Exercise 6-2
+
+My solution is in `ex6_2.c` which is a modified version of [longjmp.c](http://man7.org/tlpi/code/online/dist/proc/longjmp.c.html). The real solution can be found in [bad_longjmp.c](http://man7.org/tlpi/code/online/dist/proc/bad_longjmp.c.html).
+
+To do the exercise:
+1. Use `make ex6_2` to compile and link the code.
+1. Use `./ex6_2` to execute the solution.
+
+The output should be similar to:
+```
+```
