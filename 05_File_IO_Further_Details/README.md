@@ -41,7 +41,7 @@ Exercise 5-2 completed
 
 ## Exercise 5-3
 
-My solution is in `atomic_append.c`.
+My solution is in `atomic_append.c`. The real solution can be found in [atomic_append.c](http://man7.org/tlpi/code/online/dist/fileio/atomic_append.c.html).
 
 To build and test this solution:
 1. Use `make atomic_append` to compile and link this code.
@@ -100,7 +100,7 @@ FD (4) points to inode #51643046, has a status of 0X8000, and an offset of 20000
 
 ## Exercise 5-6
 
-My solution is in `ex5_6.c`.
+My solution is in `ex5_6.c`. The real solution can be found in [multi_descriptors.c](http://man7.org/tlpi/code/online/dist/fileio/multi_descriptors.c.html).
 
 To build and test this solution:
 1. Use `make ex5_6` to compile and link this code.
