@@ -73,6 +73,7 @@ dkms.conf
 06_Processes/mem_segments
 06_Processes/ex6_2
 06_Processes/longjmp
+06_Processes/bad_longjmp
 06_Processes/ex6_3
 17_Access_Control_Lists/acl_view
 17_Access_Control_Lists/acl_view_query

@@ -33,3 +33,17 @@ test_jmp(1) finished
 ```
 
 In effect, the body of the function is executed twice.
+
+However, the solution (`./bad_longjmp`) provided does the following:
+```
+Entered setJump
+Entered setJump2
+Exiting setJump2
+Exiting setJump
+Entered doJump
+Exiting setJump2
+Entered setJump2
+Exiting setJump2
+Segmentation fault (core dumped)
+```
+
