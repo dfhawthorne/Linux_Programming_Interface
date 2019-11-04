@@ -26,4 +26,10 @@ To do the exercise:
 
 The output should be similar to:
 ```
+Calling f1() after initial setjmp()
+test_jmp(1) finished
+We jumped back from f1()
+test_jmp(1) finished
 ```
+
+In effect, the body of the function is executed twice.

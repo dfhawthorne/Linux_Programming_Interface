@@ -8,6 +8,10 @@
 * the file COPYING.gpl-v3 for details.                                    *
 \*************************************************************************/
 
+/*************************************************************************\
+* Exercise 6-2.                                                           *
+\*************************************************************************/
+
 /* longjmp.c
 
    Demonstrate the use of setjmp() and longjmp() to perform a nonlocal goto.
@@ -18,7 +22,8 @@
    functions (f1() or f2()) we will longjmp() from.
 */
 #include <setjmp.h>
-#include "tlpi_hdr.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 static jmp_buf env;
 
@@ -36,14 +41,12 @@ f1(int argc)
     f2();
 }
 
-int
-main(int argc, char *argv[])
+void test_jmp(int argc)
 {
     switch (setjmp(env)) {
     case 0:     /* This is the return after the initial setjmp() */
         printf("Calling f1() after initial setjmp()\n");
-        f1(argc);               /* Never returns... */
-        break;                  /* ... but this is good form */
+        break;
 
     case 1:
         printf("We jumped back from f1()\n");
@@ -53,6 +56,13 @@ main(int argc, char *argv[])
         printf("We jumped back from f2()\n");
         break;
     }
+    printf("test_jmp(%d) finished\n", argc);
+}
 
-    exit(EXIT_SUCCESS);
+int
+main(int argc, char *argv[])
+{
+    test_jmp(argc);
+    f1(argc);
+    exit(0);
 }
