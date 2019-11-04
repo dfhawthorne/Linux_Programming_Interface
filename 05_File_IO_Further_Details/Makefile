@@ -1,5 +1,5 @@
 # ------------------------------------------------------------------------------
-# Make file for Chapter 04: File I/O: The Universal I/O Model
+# Make file for Chapter 05: File I/O: Further Details
 # ------------------------------------------------------------------------------
 
 .PHONY : all
