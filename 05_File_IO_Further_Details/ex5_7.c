@@ -2,6 +2,7 @@
 * Exercise 5-7: Implement readv and writev.                                    *
 \******************************************************************************/
 
+#include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,7 +20,38 @@
 
 ssize_t my_readv(int fd, const struct iovec *iov, int iovcnt)
 {
-    return readv(fd, iov, iovcnt);
+    ssize_t total_bytes_read = 0,
+        space_required = 0;
+    unsigned char *buffer = NULL,
+        *section = NULL;
+    int save_errno;
+    
+    for (int i = 0; i < iovcnt; i++)
+    {
+        space_required += iov[i].iov_len;
+    }
+    
+    buffer = malloc(space_required);
+    if (buffer == NULL)
+    {
+        return -1;
+    }
+    
+    total_bytes_read = read(fd, buffer, space_required);
+    save_errno       = errno;
+
+    section = buffer;
+    for (int i = 0; i < iovcnt; i++)
+    {
+        ssize_t leng = iov[i].iov_len;
+        memcpy(iov[i].iov_base, section, leng);
+        section += leng;
+    }
+
+    free(buffer);
+    errno            = save_errno;
+    
+    return total_bytes_read;       
 }
 
 /******************************************************************************\
@@ -28,7 +60,37 @@ ssize_t my_readv(int fd, const struct iovec *iov, int iovcnt)
 
 ssize_t my_writev(int fd, const struct iovec *iov, int iovcnt)
 {
-    return writev(fd, iov, iovcnt);
+    ssize_t total_bytes_written = 0,
+        space_required = 0;
+    unsigned char *buffer = NULL,
+        *section = NULL;
+    int save_errno;
+    
+    for (int i = 0; i < iovcnt; i++)
+    {
+        space_required += iov[i].iov_len;
+    }
+    
+    buffer = malloc(space_required);
+    if (buffer == NULL)
+    {
+        return -1;
+    }
+
+    section = buffer;
+    for (int i = 0; i < iovcnt; i++)
+    {
+        ssize_t leng = iov[i].iov_len;
+        memcpy(section, iov[i].iov_base, leng);
+        section += leng;
+    }
+    
+    total_bytes_written = write(fd, buffer, space_required);
+    save_errno          = errno;
+    free(buffer);
+    errno               = save_errno;
+    
+    return total_bytes_written;       
 }
 
 /******************************************************************************\
@@ -57,7 +119,6 @@ int t_writev(const char *file_name)
     if (fstat(fd, &myStruct) == -1)
     {
         fprintf(stderr, "Stat of %s failed: %m\n", file_name);
-    } else {
         memset(&myStruct, 0, sizeof(struct stat));
     }
     iov[0].iov_base = &myStruct;
@@ -83,6 +144,8 @@ int t_writev(const char *file_name)
 
     if (numWritten < totRequired)
         printf("Wrote fewer bytes than requested\n");
+        
+    printf("Data: inode=%ld, x=%d, str[0]='%c', str[99]='%c'\n", (long int)myStruct.st_ino, x, str[0], str[99]);
 
     printf("total bytes requested: %ld; bytes written: %ld\n",
             (long) totRequired, (long) numWritten);
@@ -133,6 +196,8 @@ int t_readv(const char *file_name)
 
     if (numRead < totRequired)
         printf("Read fewer bytes than requested\n");
+        
+    printf("Data: inode=%ld, x=%d, str[0]='%c', str[99]='%c'\n", (long int)myStruct.st_ino, x, str[0], str[99]);
 
     printf("total bytes requested: %ld; bytes read: %ld\n",
             (long) totRequired, (long) numRead);

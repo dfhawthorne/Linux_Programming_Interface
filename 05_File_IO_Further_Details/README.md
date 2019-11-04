@@ -132,8 +132,10 @@ To build and test this solution:
 
 The expected output should be:
 ```
+Data: inode=51643046, x=100, str[0]='X', str[99]='X'
 total bytes requested: 248; bytes written: 248
 Test write succeeded
+Data: inode=51643046, x=100, str[0]='X', str[99]='X'
 total bytes requested: 248; bytes read: 248
 Test read succeeded
 ```
