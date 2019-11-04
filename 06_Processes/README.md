@@ -47,3 +47,17 @@ Exiting setJump2
 Segmentation fault (core dumped)
 ```
 
+## Exercise 6-3
+
+My solution is in `ex6_3.c`.
+
+1. Use `make ex6_3` to compile and link the code.
+1. Use `./ex6_3` to test the solution.
+
+The expected output is:
+```
+FRED=NURK
+FRED=NURK
+FRED=charlie
+FRED=NULL
+```
