@@ -76,6 +76,7 @@ dkms.conf
 06_Processes/bad_longjmp
 06_Processes/ex6_3
 06_Processes/setenv
+07_Memory_Allocation/free_and_sbrk
 17_Access_Control_Lists/acl_view
 17_Access_Control_Lists/acl_view_query
 18_Directories_and_Links/realpath
