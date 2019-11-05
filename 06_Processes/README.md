@@ -49,7 +49,7 @@ Segmentation fault (core dumped)
 
 ## Exercise 6-3
 
-My solution is in `ex6_3.c`.
+My solution is in `ex6_3.c`.  The real solution is in [setenv.c](http://man7.org/tlpi/code/online/dist/proc/setenv.c.html).
 
 1. Use `make ex6_3` to compile and link the code.
 1. Use `./ex6_3` to test the solution.
@@ -60,4 +60,21 @@ FRED=NURK
 FRED=NURK
 FRED=charlie
 FRED=NULL
+```
+
+To run the real solution:
+1. Use `make setenv` to compile and link the code.
+1. Use `./setenv` to execute the code.
+
+The output should be similar to:
+```
+***** Environment before unsetenv(TT)
+TT=xxxxx
+Total lines from printenv: 58
+***** Environment after unsetenv(TT)
+Total lines from printenv: 57
+***** Environment after setenv() calls
+xyz=one
+xyz2=222
+Total lines from printenv: 59
 ```
