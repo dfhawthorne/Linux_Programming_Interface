@@ -38,8 +38,12 @@
 *        ENOMEM Insufficient memory to add a new variable to the environment.  *
 \******************************************************************************/
 
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+extern char **environ;
 
 /******************************************************************************\
 * My implementation of setenv                                                  *
@@ -47,7 +51,35 @@
 
 int my_setenv(const char *name, const char *value, int overwrite)
 {
-    return setenv(name, value, overwrite);
+    if (name == NULL || strlen(name) == 0 || strstr(name, "=") != NULL)
+    {
+        errno = EINVAL;
+        return -1;
+    }
+    char *current_value = getenv(name);
+    if (errno != 0) return -1;
+    if (overwrite == 0 && current_value != NULL)
+    {
+        errno = 0;
+        return 0;
+    }
+    char *environ_pair = malloc(strlen(name) + 1 + strlen(value) + 1);
+    if (environ_pair == NULL)
+    {
+        errno = ENOMEM;
+        return -1;
+    }
+    sprintf(environ_pair, "%s=%s", name, value);
+    if (errno != 0)
+    {
+        int save_errno = errno;
+        free(environ_pair);
+        errno = save_errno;
+        return -1;
+    }
+    int rc = putenv(environ_pair);
+    return (rc == 0) ? 0 : -1;
+    /* return setenv(name, value, overwrite); */
 }
 
 /******************************************************************************\
@@ -56,7 +88,41 @@ int my_setenv(const char *name, const char *value, int overwrite)
 
 int my_unsetenv(const char *name)
 {
-    return unsetenv(name);
+    if (name == NULL || strlen(name) == 0 || strstr(name, "=") != NULL)
+    {
+        errno = EINVAL;
+        return -1;
+    }
+    
+    #ifdef DEBUG
+    fprintf(stderr, "my_unsetenv: name='%s'\n", name);
+    #endif
+    
+    char **bp = NULL;
+    int len = strlen(name);
+    for (char **ep = environ; *ep != NULL; ep++)
+    {
+        #ifdef DEBUG
+        fprintf(stderr, "my_unsetenv: ep=0X%016llX *ep=0X%016llX **ep='%s'\n", (long long int)ep, (long long int)*ep, (*ep == NULL) ? "NULL" : *ep);
+        #endif
+        if (strncmp(name, *ep, len) == 0 && (*ep)[len] == '=')
+        {
+            bp = ep;
+            #ifdef DEBUG
+            fprintf(stderr, "my_unsetenv: bp=0X%016llX *bp=0X%016llX **bp='%s'\n", (long long int)bp, (long long int)*bp, (*bp == NULL) ? "NULL" : *bp);
+            fflush(stderr);
+            #endif
+            free(*bp);
+            *bp = NULL;
+        } else {
+            if (bp != NULL)
+            {
+                *bp = *ep;
+                bp++;
+            }
+        }
+    }
+    return 0;
 }
 
 /******************************************************************************\
