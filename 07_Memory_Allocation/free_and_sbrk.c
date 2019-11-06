@@ -50,13 +50,20 @@ main(int argc, char *argv[])
     if (freeMax > numAllocs)
         cmdLineErr("free-max > num-allocs\n");
 
-    printf("Initial program break:          %10p\n", sbrk(0));
+    void *old_prog_brk = sbrk(0);
+    printf("Initial program break:          %10p\n", old_prog_brk);
 
     printf("Allocating %d*%d bytes\n", numAllocs, blockSize);
     for (j = 0; j < numAllocs; j++) {
         ptr[j] = malloc(blockSize);
         if (ptr[j] == NULL)
             errExit("malloc");
+        void *curr_prog_brk = sbrk(0);
+        if (curr_prog_brk != old_prog_brk)
+        {
+            printf("Current prog break after #%4d: %10p (Increase of 0X%010lX)\n", j, curr_prog_brk, curr_prog_brk - old_prog_brk);
+            old_prog_brk = curr_prog_brk;
+        }
     }
 
     printf("Program break is now:           %10p\n", sbrk(0));
