@@ -89,3 +89,14 @@ Freeing blocks from 1 to 1000 in steps of 2
 After free(), program break is: 0x560e94a70000
 ```
 
+## Exercise 7-2
+
+The source code is downloaded from [free_and_sbrk.c](http://man7.org/tlpi/code/online/dist/memalloc/free_and_sbrk.c.html). The modified version is in `my_free_and_sbrk.c`.
+
+To do the exercise:
+1. Use `make my_free_and_sbrk` to compile and link the code.
+1. Use `./my_free_and_sbrk 1000 10240 2` to execute.
+
+The output should be similar to:
+```
+
