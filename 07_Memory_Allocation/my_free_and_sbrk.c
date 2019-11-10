@@ -51,17 +51,149 @@
 *        call to malloc() with a size of zero.                                 *
 *                                                                              *
 *        The free() function returns no value.                                 *
+*                                                                              *
+* ERRORS                                                                       *
+*        malloc() can fail with the following error:                           *
+*                                                                              *
+*        ENOMEM Out  of  memory.  Possibly, the application hit the RLIMIT_AS  *
+*        or RLIMIT_DATA limit described in getrlimit(2).                       *
 \******************************************************************************/
+
+static const intptr_t chunk_size    = 0x23000;
+typedef struct {
+    size_t allocated;
+    void *prev_free_area;
+    void *next_free_area;
+    unsigned int padding; /* to 32 bytes */
+    } free_list_entry_t;
+static free_list_entry_t *free_list = NULL;
+static const size_t min_allocation = sizeof(free_list_entry_t) - sizeof(size_t);
 
 void *my_malloc(size_t size)
 {
-    return malloc(size);
+    errno = 0;
+    if (size <= 0) return NULL;
+    
+    /* -----------------------------------------sizeof(free_list_entry_t) - sizeof(size_t)--------------------------------
+     * Implementation restriction - all allocation requests are to fit inside a
+     * single chunk.
+     * ---------------------------------------------------------------------- */ 
+    if (size + sizeof(size_t) > chunk_size)
+    {
+        errno = ENOMEM;
+        return NULL;
+    }
+
+    /* -------------------------------------------------------------------------
+     * Ensure that the requested size is a multiple of the minimal allocation
+     * which is the size of the free list header plus padding.
+     * ---------------------------------------------------------------------- */ 
+    if (size < min_allocation)
+    {
+        size = min_allocation;
+    } else {
+        unsigned int mask = sizeof(free_list_entry_t) - 1;
+        if ((size + sizeof(size_t)) & mask != 0)
+        {
+            size += min_allocation - ((size + sizeof(size_t)) & mask);
+        }
+    } 
+    
+    /* -------------------------------------------------------------------------
+     * If there is no free list yet, create a free area of one chunk only.
+     * ---------------------------------------------------------------------- */   
+    if (free_list == NULL) {
+        free_list = (free_list_entry_t *)sbrk(chunk_size);
+        if ((void *)free_list == (void *)-1) return NULL;
+        free_list -> allocated      = chunk_size - sizeof(size_t);
+        free_list -> prev_free_area = NULL;
+        free_list -> next_free_area = NULL;
+    }
+    
+    /* -------------------------------------------------------------------------
+     * First fit allocation. (This is the simplest to implement.)
+     * ---------------------------------------------------------------------- */ 
+    free_list_entry_t *candidate_area = NULL;
+    free_list_entry_t *last_free_area = NULL;
+    for (candidate_area = free_list;
+        candidate_area != NULL && candidate_area -> allocated < size;
+        candidate_area  = candidate_area -> next_free_area)
+    {
+        last_free_area = candidate_area;
+    }
+
+    /* -------------------------------------------------------------------------
+     * If there is insufficient free space available, do NOT request any new
+     * allocation. Just return an error.
+     * ---------------------------------------------------------------------- */ 
+    if (candidate_area == NULL)
+    {
+        errno = ENOMEM;
+        return NULL;
+    }
+
+    /* -------------------------------------------------------------------------
+     * Split the free area into used and free.
+     * If the free area matches exactly the required list, take the entire
+     * free list entry out of the doubly linked-linked list.
+     * Otherwise, take away enough space from the lower part for the allocation
+     * reuquest, and put the remainder back into the doubly-linked list.
+     * ---------------------------------------------------------------------- */
+    if (candidate_area -> allocated == size)
+    {
+        if (last_free_area != NULL)
+        {
+            last_free_area -> next_free_area = candidate_area -> next_free_area;
+            if (candidate_area -> next_free_area != NULL)
+            {
+                ((free_list_entry_t *)(candidate_area -> next_free_area)) -> prev_free_area = last_free_area;
+            }
+        }
+        else
+        {
+            free_list = candidate_area -> next_free_area;
+        }
+    }
+    else
+    {
+        free_list_entry_t *split_free_area = (free_list_entry_t *)((char *)candidate_area + size + sizeof(size_t));
+        split_free_area  -> allocated      = candidate_area -> allocated - size - sizeof(size_t);
+        candidate_area   -> allocated      = size;
+        split_free_area  -> next_free_area = candidate_area -> next_free_area;
+        if (last_free_area == NULL)
+        {
+            free_list                        = candidate_area -> next_free_area;
+        }
+        else
+        {
+            last_free_area -> next_free_area = split_free_area;
+        }
+    }
+    
+    void *allocated_area        = (void *)((char *)candidate_area + sizeof(size));
+    return allocated_area;
 }
+
+/******************************************************************************\
+* Just add the returned area to the front of the doubly-linked list.           *
+* This will lead to memory fragmentation.                                      *
+\******************************************************************************/
 
 void my_free(void *ptr)
 {
-    free(ptr);
+    free_list_entry_t *new_free_area = (free_list_entry_t *)((char *)ptr - sizeof(size_t));
+    new_free_area -> next_free_area  = free_list;
+    new_free_area -> prev_free_area  = NULL;
+    if (free_list -> next_free_area != NULL)
+    {
+        ((free_list_entry_t *)(free_list -> next_free_area)) -> prev_free_area = new_free_area;
+    }
+    free_list = new_free_area;
 }
+
+/******************************************************************************\
+* Test harnass                                                                 *
+\******************************************************************************/
 
 
 int
