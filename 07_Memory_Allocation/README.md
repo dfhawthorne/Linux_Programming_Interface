@@ -95,8 +95,15 @@ The source code is downloaded from [free_and_sbrk.c](http://man7.org/tlpi/code/o
 
 To do the exercise:
 1. Use `make my_free_and_sbrk` to compile and link the code.
-1. Use `./my_free_and_sbrk 1000 10240 2` to execute.
+1. Use `./my_free_and_sbrk 10 1024 1 999` to execute.
 
 The output should be similar to:
 ```
 
+Initial program break:          0x55bcf4d18000
+Allocating 10*1024 bytes
+Current prog break after #   0: 0x55bcf4d3b000 (Increase of 0X0000023000)
+Program break is now:           0x55bcf4d3b000
+Freeing blocks from 999 to 10 in steps of 1
+After free(), program break is: 0x55bcf4d3b000
+```
