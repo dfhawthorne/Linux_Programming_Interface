@@ -78,6 +78,7 @@ dkms.conf
 06_Processes/setenv
 07_Memory_Allocation/free_and_sbrk
 07_Memory_Allocation/my_free_and_sbrk
+08_Users_and_Groups/my_getpwnam
 17_Access_Control_Lists/acl_view
 17_Access_Control_Lists/acl_view_query
 18_Directories_and_Links/realpath
