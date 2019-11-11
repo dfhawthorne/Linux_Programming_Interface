@@ -71,10 +71,13 @@ static const size_t min_allocation = sizeof(free_list_entry_t) - sizeof(size_t);
 
 void *my_malloc(size_t size)
 {
+    #ifdef DEBUG
+    fprintf(stderr, "my_alloc(%ld)\n", (long int)size);
+    #endif
     errno = 0;
     if (size <= 0) return NULL;
     
-    /* -----------------------------------------sizeof(free_list_entry_t) - sizeof(size_t)--------------------------------
+    /* -------------------------------------------------------------------------
      * Implementation restriction - all allocation requests are to fit inside a
      * single chunk.
      * ---------------------------------------------------------------------- */ 
@@ -97,7 +100,10 @@ void *my_malloc(size_t size)
         {
             size += min_allocation - ((size + sizeof(size_t)) & mask);
         }
-    } 
+    }
+    #ifdef DEBUG
+    fprintf(stderr, "my_alloc: adjusted size=%ld\n", (long int)size);
+    #endif
     
     /* -------------------------------------------------------------------------
      * If there is no free list yet, create a free area of one chunk only.
@@ -108,7 +114,16 @@ void *my_malloc(size_t size)
         free_list -> allocated      = chunk_size - sizeof(size_t);
         free_list -> prev_free_area = NULL;
         free_list -> next_free_area = NULL;
+        #ifdef DEBUG
+        fprintf(stderr, "my_alloc: allocated free_list=%10p with size=0X%08lX\n", (void *)free_list, free_list -> allocated);
+        #endif
     }
+    #ifdef DEBUG
+    else
+    {
+        fprintf(stderr, "my_alloc: free_list=%10p\n", (void *)free_list);
+    }
+    #endif
     
     /* -------------------------------------------------------------------------
      * First fit allocation. (This is the simplest to implement.)
@@ -120,7 +135,13 @@ void *my_malloc(size_t size)
         candidate_area  = candidate_area -> next_free_area)
     {
         last_free_area = candidate_area;
+        #ifdef DEBUG
+        fprintf(stderr, "my_alloc: candidate_area=%10p\n with size=0X%08lX", (void *)candidate_area, (long int)candidate_area -> allocated);
+        #endif
     }
+    #ifdef DEBUG
+    fprintf(stderr, "my_alloc: candidate_area=%10p and last_free_area=%10p\n", (void *)candidate_area, (void *)last_free_area);
+    #endif
 
     /* -------------------------------------------------------------------------
      * If there is insufficient free space available, do NOT request any new
@@ -162,7 +183,14 @@ void *my_malloc(size_t size)
         split_free_area  -> next_free_area = candidate_area -> next_free_area;
         if (last_free_area == NULL)
         {
-            free_list                        = candidate_area -> next_free_area;
+            if (candidate_area -> next_free_area != NULL)
+            {
+                free_list                       = candidate_area -> next_free_area;
+            }
+            else
+            {
+                free_list                       = split_free_area;
+            }
         }
         else
         {
