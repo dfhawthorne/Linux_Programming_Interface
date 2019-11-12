@@ -11,4 +11,15 @@ My solution is in `my_getpwnam.c`.
 
 To use this solution:
 1. Use `make my_getpwnam` to compile and link the code.
-1. Use `./my_getpwnam douglas` to execute this code.
+1. Use `./my_getpwnam postgres` to execute this code.
+
+The result should be similar to the following:
+```
+Login name (postgres) match
+Password match
+User ID (1001) match
+Group ID (1001) match
+User info (PostGres DB Owner,,,) match
+Home directory (/home/postgres) match
+Shell (/bin/bash) match
+```

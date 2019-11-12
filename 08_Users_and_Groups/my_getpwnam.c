@@ -63,6 +63,7 @@
 #include <pwd.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/types.h>
 
 /******************************************************************************\
@@ -71,8 +72,56 @@
 
 struct passwd *my_getpwnam(const char *name)
 {
-    errno = ENOMEM;
-    return NULL;
+    struct passwd *pwd;
+    
+    while ((pwd = getpwent()) != NULL)
+    {
+        if (strcmp(pwd -> pw_name, name) == 0)
+            break;
+    }
+    
+    if (pwd != NULL)
+    {
+        ssize_t len = sizeof(struct passwd) +
+            strlen(pwd -> pw_name)   + 1 +
+            strlen(pwd -> pw_passwd) + 1 +
+            strlen(pwd -> pw_gecos)  + 1 +
+            strlen(pwd -> pw_dir)    + 1 +
+            strlen(pwd -> pw_shell)  + 1;
+        void *result = malloc(len);
+        if (result == NULL)
+        {
+            endpwent();  
+            errno = ENOMEM;
+            return NULL;
+        }
+        memcpy(result, (void *)pwd, sizeof(struct passwd));
+        char *ptr = (char *)result + sizeof(struct passwd);
+        struct passwd *new_pwd = (struct passwd *)ptr;
+        strcpy(ptr, pwd -> pw_name);
+        new_pwd -> pw_name     = ptr;
+        ptr += strlen(pwd -> pw_name)   + 1;
+        strcpy(ptr, pwd -> pw_passwd);
+        new_pwd -> pw_passwd   = ptr;
+        ptr += strlen(pwd -> pw_passwd) + 1;
+        strcpy(ptr, pwd -> pw_gecos);
+        new_pwd -> pw_gecos    = ptr;
+        ptr += strlen(pwd -> pw_gecos)  + 1;
+        strcpy(ptr, pwd -> pw_dir);
+        new_pwd -> pw_dir      = ptr;
+        ptr += strlen(pwd -> pw_dir)    + 1;
+        strcpy(ptr, pwd -> pw_shell);
+        new_pwd -> pw_shell    = ptr;
+        endpwent();
+        errno                  = 0;
+        return result;
+    }
+    else
+    {
+        endpwent();  
+        errno = ENOENT;
+        return NULL;
+    }
 }
 
 /******************************************************************************\
@@ -81,5 +130,25 @@ struct passwd *my_getpwnam(const char *name)
 
 int main(int argc, char *argv[])
 {
+    char *user = (argc < 2) ? getenv("USERNAME") : argv[1];
+    struct passwd
+        *my_pwd   = my_getpwnam(user),
+        *real_pwd = getpwnam(user);
+    
+    if (my_pwd != NULL && real_pwd != NULL)
+    {    
+        printf("Login name (%s) %s\n",     real_pwd -> pw_name,  (strcmp(real_pwd -> pw_name,   my_pwd -> pw_name)   ? "mismatch" : "match"));
+        printf("Password %s\n",                                  (strcmp(real_pwd -> pw_passwd, my_pwd -> pw_passwd) ? "mismatch" : "match"));
+        printf("User ID (%d) %s\n",        real_pwd -> pw_uid,   (real_pwd -> pw_uid != my_pwd -> pw_uid             ? "mismatch" : "match"));
+        printf("Group ID (%d) %s\n",       real_pwd -> pw_gid,   (real_pwd -> pw_gid != my_pwd -> pw_gid             ? "mismatch" : "match"));
+        printf("User info (%s) %s\n",      real_pwd -> pw_gecos, (strcmp(real_pwd -> pw_gecos,  my_pwd -> pw_gecos)  ? "mismatch" : "match"));
+        printf("Home directory (%s) %s\n", real_pwd -> pw_dir,   (strcmp(real_pwd -> pw_dir,    my_pwd -> pw_dir)    ? "mismatch" : "match"));
+        printf("Shell (%s) %s\n",          real_pwd -> pw_shell, (strcmp(real_pwd -> pw_shell,  my_pwd -> pw_shell)  ? "mismatch" : "match"));
+    }
+    else
+    {
+        fprintf(stderr, "user (%s) not found\n", user);
+        exit(1);
+    }
     exit(0);
 }
