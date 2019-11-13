@@ -24,6 +24,7 @@
 
 #include <errno.h>
 #include <grp.h>
+#include <limits.h>
 #include <pwd.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,6 +37,43 @@
 
 int my_initgroups(const char *user, gid_t group)
 {
+    if (user == NULL || strlen(user) == 0)
+    {
+        errno = EINVAL;
+        return -1;
+    }
+    gid_t *grouplist = NULL;
+    size_t size =(NGROUPS_MAX + 1) * sizeof(gid_t);
+    if ((grouplist = (gid_t *)malloc(size)) == NULL)
+    {
+        errno = ENOMEM;
+        return -1;
+    }
+    size_t gidsetsize       = 0;
+    grouplist[gidsetsize++] = group;
+    struct group *curr_group;
+    while ((curr_group = getgrent()) != NULL)
+    {
+        for (char **member = curr_group -> gr_mem; *member != NULL; member++)
+        {
+            if (strcmp(*member, user) == 0)
+            {
+                grouplist[gidsetsize++] =  curr_group -> gr_gid;
+                break;
+            }
+        }
+    }
+    endgrent();
+    if (gidsetsize > 0)
+    {
+        int num_groups = setgroups(gidsetsize, grouplist);
+        int save_errno = errno;
+        free(grouplist);
+        errno          = save_errno;
+        return (num_groups == gidsetsize) ? 0 : -1;
+    }
+    
+    free(grouplist);
     errno = EPERM;
     return -1;
 }
@@ -46,5 +84,12 @@ int my_initgroups(const char *user, gid_t group)
 
 int main(int argc, char *argv[])
 {
+    char *user = (argc < 2) ? getenv("USERNAME") : argv[1];
+    int rc = my_initgroups(user, 0);
+    if (rc != 0)
+    {
+        fprintf(stderr, "my_initgroups: %m\n");
+        exit(1);
+    }
     exit(0);
 }
