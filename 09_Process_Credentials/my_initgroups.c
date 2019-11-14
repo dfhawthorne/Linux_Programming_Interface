@@ -42,6 +42,9 @@ int my_initgroups(const char *user, gid_t group)
         errno = EINVAL;
         return -1;
     }
+    #ifdef DEBUG
+    fprintf(stderr, "my_initgroups('%s', %ld)\n", user, (long int)group);
+    #endif
     gid_t *grouplist = NULL;
     size_t size =(NGROUPS_MAX + 1) * sizeof(gid_t);
     if ((grouplist = (gid_t *)malloc(size)) == NULL)
@@ -54,28 +57,57 @@ int my_initgroups(const char *user, gid_t group)
     struct group *curr_group;
     while ((curr_group = getgrent()) != NULL)
     {
+        #ifdef DEBUG
+        fprintf(stderr,
+            "my_initgroups: searching group ('%s', %ld)\n",
+            curr_group -> gr_name,
+            (long int)(curr_group -> gr_gid)
+            );
+        #endif
         for (char **member = curr_group -> gr_mem; *member != NULL; member++)
         {
             if (strcmp(*member, user) == 0)
             {
+                #ifdef DEBUG
+                fprintf(stderr,
+                    "my_initgroups: found user ('%s') in  group ('%s', %ld)\n",
+                    user,
+                    curr_group -> gr_name,
+                    (long int)(curr_group -> gr_gid)
+                    );
+                #endif
                 grouplist[gidsetsize++] =  curr_group -> gr_gid;
                 break;
             }
         }
     }
     endgrent();
+    #ifdef DEBUG
+    fprintf(stderr,
+        "my_initgroups: number of groups in list=%ld\n",
+        (long int)gidsetsize
+        );
+    #endif
     if (gidsetsize > 0)
     {
         int num_groups = setgroups(gidsetsize, grouplist);
         int save_errno = errno;
+        #ifdef DEBUG
+        fprintf(stderr,
+            "my_initgroups: number of groups added=%d\n",
+            num_groups
+            );
+        #endif
         free(grouplist);
         errno          = save_errno;
         return (num_groups == gidsetsize) ? 0 : -1;
     }
-    
-    free(grouplist);
-    errno = EPERM;
-    return -1;
+    else
+    {
+        free(grouplist);
+        errno = EPERM;
+        return -1;
+    }
 }
 
 /******************************************************************************\
@@ -85,7 +117,13 @@ int my_initgroups(const char *user, gid_t group)
 int main(int argc, char *argv[])
 {
     char *user = (argc < 2) ? getenv("USERNAME") : argv[1];
-    int rc = my_initgroups(user, 0);
+    struct passwd *pwd = NULL;
+    if ((pwd = getpwnam(user)) == NULL)
+    {
+        fprintf(stderr, "Unable get info for user='%s': %m\n", user);
+        exit(1);
+    }
+    int rc = my_initgroups(user, pwd -> pw_gid);
     if (rc != 0)
     {
         fprintf(stderr, "my_initgroups: %m\n");
