@@ -2,6 +2,60 @@
 
 ## Exercise 9-1
 
+My solution is in `ex9_1.c`.
+
+To compile and link this solution, use `sudo make ex9_1`.
+
+### Exercise 9-1 (a)
+
+To answer this part of the exercise, use `./ex9_1 a`. The output should be similar to:
+```
+Initial UIDs:
+Uid:	1000	0	0	0
+UIDs after setuid(1001):
+Uid:	1001	1001	1001	1001
+```
+
+### Exercise 9-1 (b)
+
+To answer this part of the exercise, use `./ex9_1 b`. The output should be similar to:
+```
+Initial UIDs:
+Uid:	1000	0	0	0
+UIDs after setreuid(-1, 1001):
+Uid:	1000	1001	1001	1001
+```
+
+### Exercise 9-1 (c)
+
+To answer this part of the exercise, use `./ex9_1 c`. The output should be similar to:
+```
+Initial UIDs:
+Uid:	1000	0	0	0
+UIDs after seteuid(1001):
+Uid:	1000	1001	0	1001
+```
+
+### Exercise 9-1 (d)
+
+To answer this part of the exercise, use `./ex9_1 d`. The output should be similar to:
+```
+Initial UIDs:
+Uid:	1000	0	0	0
+UIDs after setfsuid(1001):
+Uid:	1000	0	0	1001
+```
+
+### Exercise 9-1 (e)
+
+To answer this part of the exercise, use `./ex9_1 e`. The output should be similar to:
+```
+Initial UIDs:
+Uid:	1000	0	0	0
+UIDs after setresuid(-1, 1001, 1002):
+Uid:	1000	1001	1002	1001
+```
+
 ## Exercise 9-2
 
 The answer is _NO_. The reason is given on p.168:
