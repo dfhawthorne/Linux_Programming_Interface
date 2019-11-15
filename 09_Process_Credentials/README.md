@@ -4,6 +4,9 @@
 
 ## Exercise 9-2
 
+The answer is _NO_. The reason is given on p.168:
+> A process whose effective user ID is 0 (the user ID of _root_) has all of the privileges of the superuser. Such a process is referred to as a _privileged process_. ...
+
 ## Exercise 9-3
 
 My solution is in `my_initgroups.c`.
