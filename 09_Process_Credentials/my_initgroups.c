@@ -90,17 +90,11 @@ int my_initgroups(const char *user, gid_t group)
     #endif
     if (gidsetsize > 0)
     {
-        int num_groups = setgroups(gidsetsize, grouplist);
+        int rc         = setgroups(gidsetsize, grouplist);
         int save_errno = errno;
-        #ifdef DEBUG
-        fprintf(stderr,
-            "my_initgroups: number of groups added=%d\n",
-            num_groups
-            );
-        #endif
         free(grouplist);
         errno          = save_errno;
-        return (num_groups == gidsetsize) ? 0 : -1;
+        return rc;
     }
     else
     {
