@@ -73,4 +73,30 @@ On successful execution, there is __no__ output.
 
 ## Exercise 9-4
 
+My solution is in `ex9_4.c`.
+
+To compile and link this solution, use `sudo make ex9_4`.
+
+### Exercise 9-4 (a)
+
+To answer this part of the exercise, use `./ex9_4 a`. The output should be similar to:
+```
+Initial UIDs:
+Uid:    1000    1002    1002    1002
+UIDs after seteuid(1000):
+Uid:    1000    1000    1002    1000
+UIDs after seteuid(1002):
+Uid:    1000    1002    1002    1002
+```
+
+### Exercise 9-1 (b)
+
+To answer this part of the exercise, use `./ex9_4 b`. The output should be similar to:
+```
+Initial UIDs:
+Uid:    1000    1002    1002    1002
+UIDs after setresuid(-1, 1000, 1000):
+Uid:    1000    1000    1000    1000
+```
+
 ## Exercise 9-5

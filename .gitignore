@@ -81,6 +81,8 @@ dkms.conf
 08_Users_and_Groups/my_getpwnam
 09_Process_Credentials/my_initgroups
 09_Process_Credentials/ex9_1
+09_Process_Credentials/ex9_4
+09_Process_Credentials/ex9_5
 17_Access_Control_Lists/acl_view
 17_Access_Control_Lists/acl_view_query
 18_Directories_and_Links/realpath
