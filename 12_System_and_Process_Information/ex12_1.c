@@ -13,17 +13,22 @@
 #include <ctype.h>
 #include <dirent.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <pwd.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <sys/types.h>
 
 static void             /* List all processes */
 listProcs(const uid_t uid)
 {
     DIR *dirp;
+    char status_fn[269];
+    char buffer[1024];
+    char process_name[1024];
 
     dirp = opendir("/proc");
     if (dirp  == NULL) {
@@ -42,8 +47,38 @@ listProcs(const uid_t uid)
 
         if (isdigit(dp -> d_name[0]) == 0)
             continue;           /* Skip /proc entries that are not processes */
-
-        printf("%s\n", dp->d_name);
+        #ifdef DEBUG
+        printf("PID=%s\n", dp->d_name);
+        #endif
+        sprintf(status_fn, "/proc/%s/status", dp->d_name);
+        #ifdef DEBUG
+        printf("File_name='%s'\n", status_fn);
+        #endif
+        FILE *fp = fopen(status_fn, "r");
+        if (fp != NULL)
+        {
+            while (!feof(fp))
+            {
+                fgets(buffer, 1024, fp);
+                if (strncmp(buffer, "Name:\t", 6) == 0)
+                {
+                    strncpy(process_name, buffer+6, 1022);
+                    process_name[1022] = '\n';
+                    process_name[1023] = '\0';
+                }
+                if (strncmp(buffer, "Uid:\t", 5) == 0)
+                {
+                    int process_uid;
+                    sscanf(buffer, "Uid:\t%d ", &process_uid);
+                    if (process_uid == (int)uid)
+                    {
+                        printf("%8s %s", dp->d_name, process_name);
+                    }
+                    break;
+                }
+            }
+            fclose(fp);
+        }
     }
 
     if (errno != 0) {
