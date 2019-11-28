@@ -22,13 +22,15 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#define BUFFER_SIZE 1024
+
 static void             /* List all processes */
 listProcs(const uid_t uid)
 {
     DIR *dirp;
     char status_fn[269];
-    char buffer[1024];
-    char process_name[1024];
+    char buffer[BUFFER_SIZE];
+    char process_name[BUFFER_SIZE];
 
     dirp = opendir("/proc");
     if (dirp  == NULL) {
@@ -59,12 +61,12 @@ listProcs(const uid_t uid)
         {
             while (!feof(fp))
             {
-                fgets(buffer, 1024, fp);
+                fgets(buffer, BUFFER_SIZE, fp);
                 if (strncmp(buffer, "Name:\t", 6) == 0)
                 {
-                    strncpy(process_name, buffer+6, 1022);
-                    process_name[1022] = '\n';
-                    process_name[1023] = '\0';
+                    strncpy(process_name, buffer+6, BUFFER_SIZE-6);
+                    process_name[BUFFER_SIZE-5] = '\n';
+                    process_name[BUFFER_SIZE-4] = '\0';
                 }
                 if (strncmp(buffer, "Uid:\t", 5) == 0)
                 {
