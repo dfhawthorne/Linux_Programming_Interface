@@ -71,24 +71,41 @@ struct node *find_node(pid_t pid, struct node *root)
 {
     if (root == NULL)
     {
+        #ifdef DEBUG
+        fprintf(stderr, "find_node(%ld, NULL)\n", (long)pid);
+        fprintf(stderr, "find_node returned NULL\n");
+        #endif
         return NULL;
     }
+
+    #ifdef DEBUG
+    fprintf(stderr, "find_node(%ld, %ld)\n", (long)pid, (long)(root->pid));
+    #endif
     
     struct node *result = NULL;
     
     if (root -> pid == pid)
     {
+        #ifdef DEBUG
+        fprintf(stderr, "find_node returned ROOT\n");
+        #endif
         return root;
     }
     
     result = find_node(pid, root -> children);
     if (result != NULL)
     {
+        #ifdef DEBUG
+        fprintf(stderr, "find_node returned CHILD\n");
+        #endif
         return result;
     }
 
     result = find_node(pid, root -> sibling);
 
+    #ifdef DEBUG
+    fprintf(stderr, "find_node returned %s\n", (result == NULL) ? "NULL" : "SIBLING");
+    #endif
     return result;   
 }
 
@@ -102,12 +119,13 @@ static void print_tree(struct node *root, int level)
     
     for (int i = 0; i < level; i++)
     {
-        puts("  ");
+        putchar(' ');
+        putchar(' ');
     }
     puts(root -> process_name);
-    putchar('\n');
+/*    putchar('\n'); */
     print_tree(root -> children, level+1);
-    print_tree(root -> sibling,  level+1);
+    print_tree(root -> sibling,  level);
 }
 
 /******************************************************************************\
@@ -148,11 +166,11 @@ listProcs()
         if (isdigit(dp -> d_name[0]) == 0)
             continue;           /* Skip /proc entries that are not processes */
         #ifdef DEBUG
-        printf("PID=%s\n", dp->d_name);
+        fprintf(stderr, "PID=%s\n", dp->d_name);
         #endif
         sprintf(status_fn, "/proc/%s/status", dp->d_name);
         #ifdef DEBUG
-        printf("File_name='%s'\n", status_fn);
+        fprintf(stderr, "File_name='%s'\n", status_fn);
         #endif
         FILE *fp = fopen(status_fn, "r");
         if (fp != NULL)
