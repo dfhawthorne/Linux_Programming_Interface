@@ -205,6 +205,18 @@ listProcs()
             
             current_node = new_node(process_pid, process_name);
             parent_node  = find_node(process_ppid, root);
+            if (parent_node == NULL)
+            {
+                /* search orphans */
+                struct orphan *curr_orphan = NULL;
+                parent_node = NULL;
+                for (curr_orphan = orphans;
+                    curr_orphan != NULL && parent_node == NULL;
+                    curr_orphan = curr_orphan -> next)
+                {
+                    parent_node = find_node(process_ppid, curr_orphan -> child);
+                }
+            }
             if (parent_node != NULL)
             {
                 if (parent_node -> children == NULL)
@@ -214,7 +226,9 @@ listProcs()
                 else
                 {
                     struct node *ptr;
-                    for (ptr = parent_node -> children; ptr -> sibling != NULL; ptr = ptr -> sibling)
+                    for (ptr = parent_node -> children;
+                        ptr -> sibling != NULL;
+                        ptr = ptr -> sibling)
                     {
                     }
                     ptr -> sibling = current_node;
@@ -222,7 +236,30 @@ listProcs()
             }
             else
             {
-                /* search orphans */
+                parent_node = malloc(sizeof(struct node));
+                if (parent_node == NULL)
+                {
+                    fprintf(stderr, "Unable to allocate parent for orphan: %m\n");
+                    exit(1);
+                }
+                parent_node -> pid      = process_ppid;
+                strcpy(parent_node -> process_name, "** Unknown **");
+                parent_node -> sibling  = NULL;
+                parent_node -> children = current_node;
+                struct orphan *new_orphan = malloc(sizeof(struct orphan));
+                if (new_orphan == NULL)
+                {
+                    fprintf(stderr, "Unable to allocate orphan: %m\n");
+                    exit(1);
+                }
+                new_orphan -> child = parent_node;
+                new_orphan -> prev  = NULL;
+                new_orphan -> next  = orphans;
+                if (orphans != NULL)
+                {
+                    orphans    -> prev  = new_orphan;
+                }
+                orphans             = new_orphan;
             }
         }
     }
