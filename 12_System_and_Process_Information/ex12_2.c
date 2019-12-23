@@ -203,7 +203,37 @@ listProcs()
             }
             fclose(fp);
             
-            current_node = new_node(process_pid, process_name);
+            current_node = NULL;
+            for (struct orphan *oliver = orphans;
+                oliver != NULL;
+                oliver = oliver -> next)
+            {
+                if (oliver -> child -> pid == process_pid)
+                {
+                    current_node = oliver -> child;
+                    strncpy(current_node -> process_name, process_name, PROCESS_NAME_MAX_SIZE);
+                    current_node -> process_name[PROCESS_NAME_MAX_SIZE] = '\0';
+                    if (oliver -> next != NULL)
+                    {
+                        oliver -> next -> prev = oliver -> prev;
+                    }
+                    if (oliver == orphans)
+                    {
+                        orphans         = oliver -> next;
+                        orphans -> prev = NULL;
+                    }
+                    else
+                    {
+                        oliver -> prev -> next = oliver -> next;
+                    }
+                    break;
+                }
+            }
+    
+            if (current_node == NULL)
+            {
+                current_node = new_node(process_pid, process_name);
+            }
             parent_node  = find_node(process_ppid, root);
             if (parent_node == NULL)
             {
