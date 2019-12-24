@@ -104,7 +104,11 @@ struct node *find_node(pid_t pid, struct node *root)
     result = find_node(pid, root -> sibling);
 
     #ifdef DEBUG
-    fprintf(stderr, "find_node returned %s\n", (result == NULL) ? "NULL" : "SIBLING");
+    fprintf(
+        stderr,
+        "find_node returned %s\n",
+        (result == NULL) ? "NULL" : "SIBLING"
+        );
     #endif
     return result;   
 }
@@ -204,28 +208,33 @@ listProcs()
             fclose(fp);
             
             current_node = NULL;
-            for (struct orphan *oliver = orphans;
-                oliver != NULL;
-                oliver = oliver -> next)
+            for (struct orphan *foundling = orphans;
+                foundling != NULL;
+                foundling = foundling -> next)
             {
-                if (oliver -> child -> pid == process_pid)
+                if (foundling -> child -> pid == process_pid)
                 {
-                    current_node = oliver -> child;
-                    strncpy(current_node -> process_name, process_name, PROCESS_NAME_MAX_SIZE);
+                    current_node = foundling -> child;
+                    strncpy(
+                        current_node -> process_name,
+                        process_name,
+                        PROCESS_NAME_MAX_SIZE
+                        );
                     current_node -> process_name[PROCESS_NAME_MAX_SIZE] = '\0';
-                    if (oliver -> next != NULL)
+                    if (foundling -> next != NULL)
                     {
-                        oliver -> next -> prev = oliver -> prev;
+                        foundling -> next -> prev = foundling -> prev;
                     }
-                    if (oliver == orphans)
+                    if (foundling == orphans)
                     {
-                        orphans         = oliver -> next;
+                        orphans         = foundling -> next;
                         orphans -> prev = NULL;
                     }
                     else
                     {
-                        oliver -> prev -> next = oliver -> next;
+                        foundling -> prev -> next = foundling -> next;
                     }
+                    free(foundling);
                     break;
                 }
             }
@@ -269,7 +278,10 @@ listProcs()
                 parent_node = malloc(sizeof(struct node));
                 if (parent_node == NULL)
                 {
-                    fprintf(stderr, "Unable to allocate parent for orphan: %m\n");
+                    fprintf(
+                        stderr,
+                        "Unable to allocate parent for orphan: %m\n"
+                        );
                     exit(1);
                 }
                 parent_node -> pid      = process_ppid;
@@ -301,6 +313,39 @@ listProcs()
     if (closedir(dirp) == -1)
         fprintf(stderr, "closedir: %m\n");
         
+    /* ---------------------------------------------------------------------- *
+     * Add orphans as children to the root process (0)                        *
+     * ---------------------------------------------------------------------- */
+    
+    if (orphans != NULL)
+    {    
+        struct node *last_child;
+        for (last_child = root -> children;
+            last_child != NULL && last_child -> sibling != NULL;
+            last_child = last_child -> sibling
+            )
+        {
+        }
+        if (last_child == NULL)
+        {
+            root -> children = orphans -> child;
+            struct orphan *p = orphans;
+            orphans = orphans -> next;
+            free(p);
+            last_child = root -> children;
+        }
+        for (struct orphan *p = orphans;
+            p != NULL;
+            )
+        {
+            last_child -> sibling = p -> child;
+            last_child            = p -> child;
+            struct orphan *q      = p;
+            p                     = p -> next;
+            free(q);
+        }
+    }
+    
     print_tree(root, 0);
 }
 
