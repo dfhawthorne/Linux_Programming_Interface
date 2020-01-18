@@ -127,7 +127,6 @@ static void print_tree(struct node *root, int level)
         putchar(' ');
     }
     puts(root -> process_name);
-/*    putchar('\n'); */
     print_tree(root -> children, level+1);
     print_tree(root -> sibling,  level);
 }
@@ -158,7 +157,12 @@ listProcs()
         return;
     }
 
-    /* For each entry in this directory, print directory + filename */
+    /* ---------------------------------------------------------------------
+       For each entry in the /proc directory, find a process sub-directory
+       which is identified as starting with a digit. In that sub-directory,
+       we want the 'status' file which has the process name, and the process
+       ID of its parent.
+       --------------------------------------------------------------------- */
 
     for (;;) {
         struct dirent *dp;
@@ -176,6 +180,9 @@ listProcs()
         #ifdef DEBUG
         fprintf(stderr, "File_name='%s'\n", status_fn);
         #endif
+        /* ------------------------------------------------------------------
+           Get the parent process ID, and the name of this process
+           ------------------------------------------------------------------ */
         FILE *fp = fopen(status_fn, "r");
         if (fp != NULL)
         {
@@ -207,6 +214,12 @@ listProcs()
             }
             fclose(fp);
             
+            /* --------------------------------------------------------------
+               Is this process the missing parent of an orphan?
+               If so, claim the orphan, and remove the orphan from the
+               orphanage.
+               -------------------------------------------------------------- */
+            
             current_node = NULL;
             for (struct orphan *foundling = orphans;
                 foundling != NULL;
@@ -221,10 +234,12 @@ listProcs()
                         PROCESS_NAME_MAX_SIZE
                         );
                     current_node -> process_name[PROCESS_NAME_MAX_SIZE] = '\0';
+                    /* This foundling is the last on the list of orphans */
                     if (foundling -> next != NULL)
                     {
                         foundling -> next -> prev = foundling -> prev;
                     }
+                    /* This foundling is the first on the list of orphans */
                     if (foundling == orphans)
                     {
                         orphans         = foundling -> next;
@@ -239,12 +254,12 @@ listProcs()
                 }
             }
     
-            if (current_node == NULL)
+            if (current_node == NULL) /* Not a found parent */
             {
                 current_node = new_node(process_pid, process_name);
             }
             parent_node  = find_node(process_ppid, root);
-            if (parent_node == NULL)
+            if (parent_node == NULL) /* A new orphan */
             {
                 /* search orphans */
                 struct orphan *curr_orphan = NULL;
