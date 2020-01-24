@@ -65,6 +65,7 @@ struct node *new_node(pid_t pid, char *process_name)
 
 /******************************************************************************\
 * Find a node with the given process id within a tree                          *
+* This is a depth-first search (children before siblings).                     *
 \******************************************************************************/
 
 struct node *find_node(pid_t pid, struct node *root)
@@ -82,8 +83,6 @@ struct node *find_node(pid_t pid, struct node *root)
     fprintf(stderr, "find_node(%ld, %ld)\n", (long)pid, (long)(root->pid));
     #endif
     
-    struct node *result = NULL;
-    
     if (root -> pid == pid)
     {
         #ifdef DEBUG
@@ -91,6 +90,8 @@ struct node *find_node(pid_t pid, struct node *root)
         #endif
         return root;
     }
+    
+    struct node *result = NULL;
     
     result = find_node(pid, root -> children);
     if (result != NULL)
@@ -279,13 +280,32 @@ listProcs()
                 }
                 else
                 {
-                    struct node *ptr;
+                    struct node
+                        *ptr       = NULL,
+                        *last_node = NULL;
+                        
                     for (ptr = parent_node -> children;
                         ptr -> sibling != NULL;
                         ptr = ptr -> sibling)
                     {
+                        if (strcmp(ptr -> process_name, current_node -> process_name) >= 0)
+                        {
+                            break;
+                        }
+                        last_node = ptr;
                     }
-                    ptr -> sibling = current_node;
+                    
+                    if (last_node == NULL)
+                    {
+                        struct node *first_child = parent_node -> children;
+                        parent_node -> children  = current_node;
+                        current_node -> sibling  = first_child;
+                    }
+                    else
+                    {
+                        last_node -> sibling     = current_node;
+                        current_node -> sibling  = ptr;
+                    }
                 }
             }
             else
@@ -361,7 +381,7 @@ listProcs()
         }
     }
     
-    print_tree(root, 0);
+    print_tree(root -> children, 0);
 }
 
 int
