@@ -16,3 +16,29 @@ The expected output is similar to:
     1831 Xorg
 ```
 
+## Exercise 12-2
+
+My solution is in `ex12_2.c`.
+
+1. To compile and link this solution, use `make ex12_2`.
+1. To execute this solution, use `./ex12_2`
+
+The expected output is similar to:
+```
+** Unknown **
+  ssh-agent
+  cygtermd
+    bash
+      ex12_2
+```
+
+## Exercise 12-3
+
+My solution is in `ex12_3.c`.
+
+1. To compile and link this solution, use `make ex12_3`.
+1. To execute this solution, use `./ex12_3`
+
+The expected output is similar to:
+```
+```
