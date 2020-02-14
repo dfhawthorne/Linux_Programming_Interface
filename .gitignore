@@ -88,6 +88,7 @@ dkms.conf
 11_System_Limits_and_Options/t_sysconf
 12_System_and_Process_Information/ex12_1
 12_System_and_Process_Information/ex12_2
+12_System_and_Process_Information/ex12_3
 17_Access_Control_Lists/acl_view
 17_Access_Control_Lists/acl_view_query
 18_Directories_and_Links/realpath
