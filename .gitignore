@@ -89,6 +89,11 @@ dkms.conf
 12_System_and_Process_Information/ex12_1
 12_System_and_Process_Information/ex12_2
 12_System_and_Process_Information/ex12_3
+13_File_I_O_Buffering/ex13_1
+13_File_I_O_Buffering/ex13_2
+13_File_I_O_Buffering/ex13_3
+13_File_I_O_Buffering/ex13_4
+13_File_I_O_Buffering/ex13_5
 17_Access_Control_Lists/acl_view
 17_Access_Control_Lists/acl_view_query
 18_Directories_and_Links/realpath
