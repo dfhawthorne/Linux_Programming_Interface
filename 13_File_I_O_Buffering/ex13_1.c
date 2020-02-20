@@ -15,17 +15,21 @@ main(int argc, char *argv[])
     int buffer_size = 1024;
     int opt;
     int verbosity = 0;
+    int open_sync = 0;
     
-    while ((opt = getopt(argc, argv, "b:v")) != -1) {
+    while ((opt = getopt(argc, argv, "b:sv")) != -1) {
         switch (opt) {
         case 'b':
             buffer_size = atoi(optarg);
+            break;
+        case 's':
+            open_sync = 1;
             break;
         case 'v':
             verbosity++;
             break;
         default: /* '?' */
-            fprintf(stderr, "Usage: %s [-b buffer_size] input-file-name output-file-name\n",
+            fprintf(stderr, "Usage: %s [-b buffer_size] [-s] [-v] input-file-name output-file-name\n",
                     argv[0]);
             exit(EXIT_FAILURE);
         }
@@ -33,8 +37,8 @@ main(int argc, char *argv[])
 
     if (verbosity > 0)
     {
-        printf("buffer_size=%d; argc=%d; optind=%d\n",
-           buffer_size, argc, optind);
+        printf("buffer_size=%d; verbosity=%d; sync=%d; argc=%d; optind=%d\n",
+           buffer_size, verbosity, open_sync, argc, optind);
     }
 
     if (optind >= argc-1) {
@@ -66,6 +70,7 @@ main(int argc, char *argv[])
     }
 
     openFlags = O_CREAT | O_WRONLY | O_TRUNC;
+    if (open_sync) openFlags |= O_SYNC;
     filePerms = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP |
                 S_IROTH | S_IWOTH;      /* rw-rw-rw- */
     outputFd = open(argv[optind+1], openFlags, filePerms);

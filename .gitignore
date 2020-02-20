@@ -55,6 +55,7 @@ dkms.conf
 *.dat
 *.txt
 *.lst
+*.log
 
 # Auxiliary files
 */comments.py
