@@ -14,5 +14,13 @@ The command options are:
 
 To generate a log file of multiple runs, do
 ```bash
-./test_ex13_1.sh >>test_run_2020_02_20.log 2>&1
+./test_ex13_1.sh >>test_run_2020_02_20.log
 ```
+
+Output file has the following fields:
+1. Block Size
+2. Synchronisation flag set?
+3. Number of bytes read
+4. Wall clock time in seconds
+5. User time in seconds
+6. System time in seconds

@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <sys/times.h>
+#include <time.h>
 #include <unistd.h>
 
 int
@@ -82,12 +84,16 @@ main(int argc, char *argv[])
 
     /* Transfer data until we encounter end of input or an error */
 
+    long bytes_read = 0L;
     while ((numRead = read(inputFd, buf, buffer_size)) > 0)
+    {
+        bytes_read += numRead;
         if (write(outputFd, buf, numRead) != numRead)
         {
             fprintf(stderr, "couldn't write whole buffer: %m\n");
             exit(EXIT_FAILURE);
         }
+    }
     if (numRead == -1)
     {
         fprintf(stderr, "read: %m\n");
@@ -106,6 +112,44 @@ main(int argc, char *argv[])
         fprintf(stderr, "close output: %m\n");
         exit(EXIT_FAILURE);
     }
+    
+    /*------------------------------------------------------------------------*\
+    | Print statistics for later analysis                                      |
+    |  1. Block Size                                                           |
+    |  2. Synchronisation flag set?                                            |
+    |  3. Number of bytes read                                                 |
+    |  4. Wall clock time in seconds                                           |
+    |  5. User time in seconds                                                 |
+    |  6. System time in seconds                                               |
+    \*------------------------------------------------------------------------*/
+    
+    struct tms t;
+    clock_t clockTime = clock();
+    long clockTicks = sysconf(_SC_CLK_TCK);  /* Clocks per tick for conversion */
+    
+    if (clockTicks == -1)
+    {
+        fprintf(stderr, "sysconf(_SC_CLK_TCK) failed: %m\n");
+        exit(EXIT_FAILURE);
+    }
+    if (clockTime  == -1)
+    {
+        fprintf(stderr, "clock() failed: %m\n");
+        exit(EXIT_FAILURE);
+    }
+    if (times(&t)  == -1)
+    {
+        fprintf(stderr, "times() failed: %m\n");
+        exit(EXIT_FAILURE);
+    }
+    printf("%ld\t%c\t%ld\t%.2f\t%.2f\t%.2f\n",
+        buffer_size,
+        (open_sync) ? 's' : '-',
+        bytes_read,
+        (double) clockTime / CLOCKS_PER_SEC,
+        (double) t.tms_utime / clockTicks,
+        (double) t.tms_stime / clockTicks
+        );
 
     exit(EXIT_SUCCESS);
 }
