@@ -142,7 +142,7 @@ main(int argc, char *argv[])
         fprintf(stderr, "times() failed: %m\n");
         exit(EXIT_FAILURE);
     }
-    printf("%ld\t%c\t%ld\t%.2f\t%.2f\t%.2f\n",
+    printf("%d\t%c\t%ld\t%.2f\t%.2f\t%.2f\n",
         buffer_size,
         (open_sync) ? 's' : '-',
         bytes_read,
