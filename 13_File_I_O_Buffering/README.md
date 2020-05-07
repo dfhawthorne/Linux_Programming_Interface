@@ -54,3 +54,66 @@ Adding `O_SYNC` significantly increasing the run time (but the effect is much le
 ## Part (c)
 
 Not done yet.
+
+# Exercise 13-2
+
+To compile the solution, run:
+```bash
+make ex13_2
+```
+
+To execute the solution, run:
+```bash
+./ex13_2 -b 4096 -f -d -n 409600 test.dat
+```
+
+Sample output is:
+```text
+4096    -       f       d       409600  0.04    0.00    0.03
+```
+
+# Exercise 13-3
+
+Refer to Ex13-3.md
+
+# Exercise 13-4
+
+To compile the solution, run:
+```bash
+make ex13_4
+```
+
+To execute the solution, run:
+```bash
+./ex13_4
+```
+
+The expected output is:
+```text
+If I had more time,
+I would have written you a shorter letter.
+```
+
+To run the solution with a file, run:
+```bash
+./ex13_4 >test.dat
+cat test.dat
+```
+
+The expected output is:
+```text
+I would have written you a shorter letter.
+If I had more time,
+```
+
+# Exercise 13-5
+
+To compile the solution, run:
+```bash
+make my_tail
+```
+
+To execute the solution, run:
+```bash
+./my_tail my_tail.c
+```

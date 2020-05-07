@@ -3,7 +3,7 @@
 # ------------------------------------------------------------------------------
 
 .PHONY : all
-all : ex13_1 ex13_2 ex13_3 ex13_4 ex13_5
+all : ex13_1 ex13_2 ex13_3 ex13_4 ex13_5 my_tail
 
 ex13_1: ex13_1.c
 	gcc -o ex13_1 ex13_1.c
@@ -19,3 +19,6 @@ ex13_4: ex13_4.c
 
 ex13_5: ex13_5.c
 	gcc -o ex13_5 ex13_5.c
+
+my_tail: my_tail.c
+	gcc -o my_tail my_tail.c
