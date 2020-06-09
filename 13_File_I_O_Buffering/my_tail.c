@@ -39,18 +39,28 @@ int main(int argc, char *argv[])
     int opt;
     int verbosity = 0;
     int num_lines = 10;
+    int show_help = 0;
     
-    while ((opt = getopt(argc, argv, "n:v")) != -1) {
+    while ((opt = getopt(argc, argv, "hn:v")) != -1) {
         switch (opt) {
-        case 'n':
-            num_lines = atoi(optarg);
-            break;
-        case 'v':
-            verbosity++;
-            break;
-        default: /* '?' */
-            usage_error(argv[0], NULL);
+            case 'h':
+                show_help = 1;
+                break;
+            case 'n':
+                num_lines = atoi(optarg);
+                break;
+            case 'v':
+                verbosity++;
+                break;
+            default: /* '?' */
+                usage_error(argv[0], NULL);
         }
+    }
+    
+    if (show_help)
+    {
+        usage_error(argv[0], NULL);
+        exit(EXIT_SUCCESS);
     }
 
     if (verbosity > 0)
@@ -109,6 +119,33 @@ int main(int argc, char *argv[])
         fprintf(stderr, "failed to allocate I/O buffer: %m\n");
         close(fd);
         free(offsets);
+        exit(EXIT_FAILURE);
+    }
+    
+    ssize_t bytes_read = 0;
+    while ((bytes_read = read(fd, (void *)io_buffer, (size_t)block_size)) > 0)
+    {
+        for (char *cp = (char *)io_buffer;
+            cp <= (char *)io_buffer + bytes_read;
+            cp++)
+        {
+            if (*cp == '\n')
+            {
+                num_lines_read++;
+                curr_offset_idx++;
+                curr_offset_idx %= num_lines;
+                offsets[curr_offset_idx] = cp - (char *)io_buffer + 1;
+                if (verbosity > 0) fprintf(stderr, "num_lines_read=%ld,offsets[%d]=%ld\n", (long)num_lines_read, curr_offset_idx, offsets[curr_offset_idx]);
+            }
+        }
+    }
+    
+    if (bytes_read == -1)
+    {
+        fprintf(stderr, "failed to read from file: %m\n");
+        close(fd);
+        free(offsets);
+        free(io_buffer);
         exit(EXIT_FAILURE);
     }
     

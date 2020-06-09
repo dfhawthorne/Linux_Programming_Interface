@@ -95,6 +95,7 @@ dkms.conf
 13_File_I_O_Buffering/ex13_3
 13_File_I_O_Buffering/ex13_4
 13_File_I_O_Buffering/ex13_5
+13_File_I_O_Buffering/my_tail
 17_Access_Control_Lists/acl_view
 17_Access_Control_Lists/acl_view_query
 18_Directories_and_Links/realpath
@@ -105,7 +106,7 @@ dkms.conf
 18_Directories_and_Links/getcwd
 18_Directories_and_Links/nftw_dir_tree
 
-##\ R Fuliles
+## R Files
 
 */.RData
 */.Rhistory
