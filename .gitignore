@@ -60,52 +60,6 @@ dkms.conf
 # Auxiliary files
 */comments.py
 
-# Compiled commands
-04_File_IO_The_Universal_IO_Model/tee
-04_File_IO_The_Universal_IO_Model/cp
-04_File_IO_The_Universal_IO_Model/seek_io
-05_File_IO_Further_Details/large_file
-05_File_IO_Further_Details/ex5_2
-05_File_IO_Further_Details/atomic_append
-05_File_IO_Further_Details/ex5_4
-05_File_IO_Further_Details/ex5_5
-05_File_IO_Further_Details/ex5_6
-05_File_IO_Further_Details/ex5_7
-06_Processes/mem_segments
-06_Processes/ex6_2
-06_Processes/longjmp
-06_Processes/bad_longjmp
-06_Processes/ex6_3
-06_Processes/setenv
-07_Memory_Allocation/free_and_sbrk
-07_Memory_Allocation/my_free_and_sbrk
-08_Users_and_Groups/my_getpwnam
-09_Process_Credentials/my_initgroups
-09_Process_Credentials/ex9_1
-09_Process_Credentials/ex9_4
-09_Process_Credentials/ex9_5
-10_Time/ex10_1
-11_System_Limits_and_Options/t_fpathconf
-11_System_Limits_and_Options/t_sysconf
-12_System_and_Process_Information/ex12_1
-12_System_and_Process_Information/ex12_2
-12_System_and_Process_Information/ex12_3
-13_File_I_O_Buffering/ex13_1
-13_File_I_O_Buffering/ex13_2
-13_File_I_O_Buffering/ex13_3
-13_File_I_O_Buffering/ex13_4
-13_File_I_O_Buffering/ex13_5
-13_File_I_O_Buffering/my_tail
-17_Access_Control_Lists/acl_view
-17_Access_Control_Lists/acl_view_query
-18_Directories_and_Links/realpath
-18_Directories_and_Links/ex18_2
-18_Directories_and_Links/ex18_7
-18_Directories_and_Links/ex18_8
-18_Directories_and_Links/list_files
-18_Directories_and_Links/getcwd
-18_Directories_and_Links/nftw_dir_tree
-
 ## R Files
 
 */.RData
