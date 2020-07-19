@@ -79,24 +79,12 @@ int main(int argc, char *argv[])
         printf("input file name argument = %s\n", file_name);
     }    
 
-    /* Allocate data structures                                               */
-
-    long *offsets = (long *)malloc(num_lines * sizeof(long));
-    if (offsets == NULL) {
-        fprintf(stderr, "%s: Unable to allocate offsets array: %m\n", argv[0]);
-        exit(EXIT_FAILURE);
-    }
-    int curr_offset_idx = 0;
-    int num_lines_read = 0;
-    offsets[0] = 0L;
-    
     /* Open and read input file                                               */
     
     int fd = open(file_name, O_RDONLY);
     if (fd == -1)
     {
         fprintf(stderr, "opening file %s: %m\n", file_name);
-        free(offsets);
         exit(EXIT_FAILURE);
     }
     
@@ -106,51 +94,58 @@ int main(int argc, char *argv[])
     {
         fprintf(stderr, "failed to get stats for file %s: %m\n", file_name);
         close(fd);
-        free(offsets);
         exit(EXIT_FAILURE);
     }
 
-    blksize_t block_size = stats_buffer.st_blksize;
-    if (verbosity > 0) fprintf(stderr, "Block size=%ld\n", (long)block_size);
-    char *io_buffer = (char *)malloc((long)block_size);
+    long block_size      = (long)stats_buffer.st_blksize;
+    long file_size       = (long)stats_buffer.st_size;
+    long last_blk_offset = (file_size/block_size)*block_size;
+    if (verbosity > 0)
+    {
+        fprintf(stderr,
+                "Block size=%ld, file size=%ld, offset to last block=%ld\n",
+                block_size,
+                file_size,
+                last_blk_offset);
+    }
+    char *io_buffer      = (char *)malloc(block_size);
     
     if (io_buffer == NULL)
     {
         fprintf(stderr, "failed to allocate I/O buffer: %m\n");
         close(fd);
-        free(offsets);
+        free(io_buffer);
         exit(EXIT_FAILURE);
     }
     
-    ssize_t bytes_read = 0;
-    while ((bytes_read = read(fd, (void *)io_buffer, (size_t)block_size)) > 0)
-    {
-        for (char *cp = (char *)io_buffer;
-            cp <= (char *)io_buffer + bytes_read;
-            cp++)
-        {
-            if (*cp == '\n')
-            {
-                num_lines_read++;
-                curr_offset_idx++;
-                curr_offset_idx %= num_lines;
-                offsets[curr_offset_idx] = cp - (char *)io_buffer + 1;
-                if (verbosity > 0) fprintf(stderr, "num_lines_read=%ld,offsets[%d]=%ld\n", (long)num_lines_read, curr_offset_idx, offsets[curr_offset_idx]);
-            }
-        }
+    if (lseek(fd, (off_t)last_blk_offset, SEEK_SET) == (off_t)-1) {
+        fprintf(stderr, "failed to lseek to offset %ld: %m\n", last_blk_offset);
+        close(fd);
+        free(io_buffer);
+        exit(EXIT_FAILURE);
     }
+    
+    int     num_lines_found = 0;
+    ssize_t bytes_read      = read(fd, (void *)io_buffer, (size_t)block_size);
     
     if (bytes_read == -1)
     {
         fprintf(stderr, "failed to read from file: %m\n");
         close(fd);
-        free(offsets);
         free(io_buffer);
         exit(EXIT_FAILURE);
     }
-    
+
+    for (char *cp = (char *)io_buffer;
+         cp <= (char *)io_buffer + bytes_read;
+         cp++)
+    {
+        if (*cp == '\n') num_lines_found++;
+    }
+
+    if (verbosity > 0) fprintf(stderr, "num_lines_found=%d\n", num_lines_found);
+        
     close(fd);
-    free(offsets);
     free(io_buffer);
     
     exit(EXIT_SUCCESS);
