@@ -37,17 +37,17 @@ int main(int argc, char *argv[])
     /* Parse command arguments                                                */
     
     int opt;
-    int verbosity = 0;
-    int num_lines = 10;
-    int show_help = 0;
+    int verbosity          = 0;
+    int num_lines_required = 10;
+    int show_help          = 0;
     
     while ((opt = getopt(argc, argv, "hn:v")) != -1) {
         switch (opt) {
             case 'h':
-                show_help = 1;
+                show_help          = 1;
                 break;
             case 'n':
-                num_lines = atoi(optarg);
+                num_lines_required = atoi(optarg);
                 break;
             case 'v':
                 verbosity++;
@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
     if (verbosity > 0)
     {
         printf("num_lines=%d; verbosity=%d; argc=%d; optind=%d\n",
-           num_lines, verbosity, argc, optind);
+           num_lines_required, verbosity, argc, optind);
     }
 
     if (optind >= argc) {
@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
                 file_size,
                 last_blk_offset);
     }
-    char *io_buffer      = (char *)malloc(block_size);
+    char *io_buffer      = (char *)malloc(block_size+1); /* Allow for NULL at end */
     
     if (io_buffer == NULL)
     {
@@ -127,6 +127,7 @@ int main(int argc, char *argv[])
     
     int     num_lines_found = 0;
     ssize_t bytes_read      = read(fd, (void *)io_buffer, (size_t)block_size);
+    io_buffer[bytes_read]   = '\0'; /* Put in teminating null */
     
     if (bytes_read == -1)
     {
@@ -136,14 +137,30 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    for (char *cp = (char *)io_buffer;
-         cp <= (char *)io_buffer + bytes_read;
-         cp++)
+    char *cp  = io_buffer  + bytes_read - 1;
+    for (; cp >= io_buffer; cp--)
     {
         if (*cp == '\n') num_lines_found++;
+        if (num_lines_found == num_lines_required) break;
     }
 
     if (verbosity > 0) fprintf(stderr, "num_lines_found=%d\n", num_lines_found);
+    
+    if (num_lines_found == num_lines_required)
+    {
+        printf(cp);
+    }
+    else
+    {
+        if (last_blk_offset == 0)
+        {
+            printf(cp);
+        }
+        else
+        {
+            fprintf(stderr, "Need to load previous block\n");    
+        }
+    }
         
     close(fd);
     free(io_buffer);
