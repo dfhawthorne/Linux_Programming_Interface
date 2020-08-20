@@ -115,5 +115,10 @@ make my_tail
 
 To execute the solution, run:
 ```bash
-./my_tail my_tail.c
+./my_tail -n 2000 results.csv | wc -l
+```
+
+The expected output is:
+```text
+2000
 ```
