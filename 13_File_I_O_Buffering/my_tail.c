@@ -28,6 +28,24 @@ static void usage_error(char *pgm_name, char *msg)
 }
 
 /* --------------------------------------------------------------------------
+ | Free storage associated with dynamic data structures
+ * -------------------------------------------------------------------------- */
+
+static void free_buffers(char **buffers, int num_blocks)
+{
+    if (buffers == NULL) return;
+    
+    for (int i = 0; i < num_blocks; i++)
+    {
+        if (buffers[i] != NULL)
+        {
+            free(buffers[i]);
+        }
+    }
+    free(buffers);
+}
+
+/* --------------------------------------------------------------------------
  * Main program
  * -------------------------------------------------------------------------- */
  
@@ -159,16 +177,10 @@ int main(int argc, char *argv[])
             fprintf(stderr,
                 "failed to allocate I/O buffer: %m\n");
             close(fd);
-            for (int i = 0; i < num_blocks; i++)
-            {
-                if (buffers[i] != NULL)
-                {
-                    free(buffers[i]);
-                }
-            }
-            free(buffers);
+            free_buffers(buffers, num_blocks);
             exit(EXIT_FAILURE);
         }
+        num_buffers_loaded++;
     
         if (verbosity > 0) fprintf(stderr, "Seeking offset #%ld\n", blk_offset);
         if (lseek(fd, (off_t)blk_offset, SEEK_SET) == (off_t)-1) {
@@ -176,40 +188,34 @@ int main(int argc, char *argv[])
                 "failed to lseek to offset %ld: %m\n",
                 blk_offset);
             close(fd);
-            for (int i = 0; i < num_blocks; i++)
-            {
-                if (buffers[i] != NULL)
-                {
-                    free(buffers[i]);
-                }
-            }
-            free(buffers);
+            free_buffers(buffers, num_blocks);
             exit(EXIT_FAILURE);
         }
     
-        if (verbosity > 0) fprintf(stderr, "Reading block into buffer #%d at %p\n", num_buffers_loaded, buffers[num_buffers_loaded]);
-        ssize_t bytes_read      = read(fd, (void *)(buffers[num_buffers_loaded]), (size_t)block_size);
+        if (verbosity > 0)
+        {
+            fprintf(stderr,
+                "Reading block into buffer #%d at %p\n",
+                num_buffers_loaded-1,
+                buffers[num_buffers_loaded-1]);
+        }
+        ssize_t bytes_read      = read(fd,
+                                       (void *)(buffers[num_buffers_loaded-1]),
+                                       (size_t)block_size);
    
         if (bytes_read == -1)
         {
             fprintf(stderr,
                 "failed to read from file: %m\n");
             close(fd);
-            for (int i = 0; i < num_blocks; i++)
-            {
-                if (buffers[i] != NULL)
-                {
-                    free(buffers[i]);
-                }
-            }
-            free(buffers);
+            free_buffers(buffers, num_blocks);
             exit(EXIT_FAILURE);
         }
 
-        buffers[num_buffers_loaded][bytes_read]   = '\0'; /* Put in teminating null */
+        buffers[num_buffers_loaded-1][bytes_read]   = '\0'; /* Put in teminating null */
 
-        for (cp  = buffers[num_buffers_loaded]  + bytes_read - 1;
-             cp >= buffers[num_buffers_loaded];
+        for (cp  = buffers[num_buffers_loaded-1]  + bytes_read - 1;
+             cp >= buffers[num_buffers_loaded-1];
              cp--)
         {
             if (*cp == '\n') num_lines_found++;
@@ -222,8 +228,6 @@ int main(int argc, char *argv[])
         }
 
         if (verbosity > 0) fprintf(stderr, "num_lines_found=%d\n", num_lines_found);
-
-        num_buffers_loaded++;
     
         if (num_lines_found == num_lines_required) break;
         
@@ -234,23 +238,16 @@ int main(int argc, char *argv[])
     if (cp != NULL)
     {
         if (verbosity > 0) fprintf(stderr, "print partial buffer at %p\n", cp);
-        printf(cp);
+        printf("%s", cp);
         for (int i = num_buffers_loaded - 2; i >= 0; i--)
         {
             if (verbosity > 0) fprintf(stderr, "print buffer #%d at %p\n", i, buffers[i]);
-            printf(buffers[i]);
+            printf("%s", buffers[i]);
         }
     }
         
     close(fd);
-    for (int i = 0; i < num_blocks; i++)
-    {
-        if (buffers[i] != NULL)
-        {
-            free(buffers[i]);
-        }
-    }
-    free(buffers);
+    free_buffers(buffers, num_blocks);
      
     exit(EXIT_SUCCESS);
 }
