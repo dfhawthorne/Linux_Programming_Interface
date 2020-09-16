@@ -11,10 +11,12 @@
 
 #include <error.h>
 #include <fcntl.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/statfs.h>
+#include <sys/times.h>
 #include <sys/types.h>
+#include <time.h>
 #include <unistd.h>
 
 /* --------------------------------------------------------------------------
@@ -149,11 +151,79 @@ int main(int argc, char *argv[])
         fprintf(stderr, "FS free i-nodes : %ld\n", (long)fs_info.f_ffree);
     }
 
+    /* ----------------------------------------------------------------------
+     | Start collecting timing information
+     * ---------------------------------------------------------------------- */
+     
+    long clockTicks = sysconf(_SC_CLK_TCK);  /* Clocks per tick for conversion */
+    struct tms start_t;
+    clock_t start_clockTime = clock();
+
+    if (clockTicks == -1)
+    {
+        fprintf(stderr, "sysconf(_SC_CLK_TCK) failed: %m\n");
+        exit(EXIT_FAILURE);
+    }
+    if (start_clockTime  == -1)
+    {
+        fprintf(stderr, "clock() failed: %m\n");
+        exit(EXIT_FAILURE);
+    }
+    if (times(&start_t)  == -1)
+    {
+        fprintf(stderr, "times() failed: %m\n");
+        exit(EXIT_FAILURE);
+    }
+
+    /* ----------------------------------------------------------------------
+     | Create the requested number of files
+     * ---------------------------------------------------------------------- */
+     
+    if (random_creation) {
+        srandom(start_clockTime);
+    }
+     
     for (int i = 0; i < num_files_required; i++)
     {
         long file_num = random_creation ? random() % 1000000 : i;
         create_file(output_dir_name, file_num, verbosity);
     }
+    
+    /*------------------------------------------------------------------------*\
+    | Print statistics for later analysis                                      |
+    |  1. File system type                                                     |
+    |  2. Create files in random order?                                        |
+    |  3. Number of files created                                              |
+    |  4. Wall clock time in seconds                                           |
+    |  5. User time in seconds                                                 |
+    |  6. System time in seconds                                               |
+    \*------------------------------------------------------------------------*/
+    
+    struct tms end_t;
+    clock_t end_clockTime = clock();
+    
+    if (end_clockTime  == -1)
+    {
+        fprintf(stderr, "clock() failed: %m\n");
+        exit(EXIT_FAILURE);
+    }
+    if (times(&end_t)  == -1)
+    {
+        fprintf(stderr, "times() failed: %m\n");
+        exit(EXIT_FAILURE);
+    }
+    printf("0x%08lX\t%c\t%ld\t%.6f\t%.6f\t%.6f\n",
+        (long)fs_info.f_type,
+        (random_creation) ? 'r' : 's',
+        num_files_required,
+        (double) (end_clockTime   - start_clockTime)   / CLOCKS_PER_SEC,
+        (double) (end_t.tms_utime - start_t.tms_utime) / clockTicks,
+        (double) (end_t.tms_stime - start_t.tms_stime) / clockTicks
+        );
+
+    /* ----------------------------------------------------------------------
+     | Delete all files in the directory
+     * ---------------------------------------------------------------------- */
 
     char cmd[1024];
     sprintf(cmd, "find %s -type f -delete", output_dir_name);
