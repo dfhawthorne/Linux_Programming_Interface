@@ -87,7 +87,7 @@ do
         [[ ${file_perm} == 0 ]]                               && \
             printf "| %s------ " "${perm_str[$dir_perm]}"     || \
             printf "| "
-        printf "| %s------ " "${perm_str[$file_perm]}"        || \
+        printf "| %s------ " "${perm_str[$file_perm]}"
         [[ -r "${dir_name}"/old_file${file_perm} ]]           && \
             printf "| %s " "${yes_mark}"                      || \
             printf "| %s " "${no_mark}"
