@@ -129,7 +129,7 @@ do
     for file_perm in {0..7}
     do
         [[ ${file_perm} == 0 ]]                               && \
-            printf "| %s------ " "${perm_str[$dir_perm]}"     || \
+            printf "| %s------ " "${perm_str[$src_dir_perm]}" || \
             printf "| "
         printf "| %s------ " "${perm_str[$file_perm]}"
         for dst_dir_perm in {0..7}
