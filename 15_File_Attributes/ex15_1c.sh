@@ -4,6 +4,8 @@
 # ------------------------------------------------------------------------------
 
 declare -a perm_str
+declare -i dir_perm file_perm src_dir_perm dst_dir_perm
+
 perm_str[0]="---"
 perm_str[1]="--x"
 perm_str[2]="-w-"
@@ -42,6 +44,7 @@ printf "# Table of Contents\n\n"
 printf "* [Exercise Results](#exercise-results)\n"
 printf "  * [File Creation](#file-creation)\n"
 printf "  * [File Access](#file-access)\n"
+printf "  * [Move File Between Directories](#move-file-between-directories)\n"
 
 # ------------------------------------------------------------------------------
 # Exercise Results
@@ -97,6 +100,78 @@ do
         rm -f "${dir_name}"/old_file${file_perm} 2>/dev/null  && \
             printf "| %s " "${yes_mark}"                      || \
             printf "| %s " "${no_mark}"
+        printf "|\n"
+    done
+done
+
+# ------------------------------------------------------------------------------
+# File Access
+# ------------------------------------------------------------------------------
+
+printf "\n## File Access\n\n"
+
+printf "| Dir Perm | File Perm | Open File | Write File | Delete File |\n"
+printf "| -------- | --------- | --------- | ---------- | ----------- |\n"
+
+for dir_perm in {0..7}
+do
+    dir_name="test${dir_perm}"
+    chmod "${dir_perm}00" "${dir_name}"
+    for file_perm in {0..7}
+    do
+        [[ ${file_perm} == 0 ]]                               && \
+            printf "| %s------ " "${perm_str[$dir_perm]}"     || \
+            printf "| "
+        printf "| %s------ " "${perm_str[$file_perm]}"
+        [[ -r "${dir_name}"/old_file${file_perm} ]]           && \
+            printf "| %s " "${yes_mark}"                      || \
+            printf "| %s " "${no_mark}"
+        [[ -w "${dir_name}"/old_file${file_perm} ]]           && \
+            printf "| %s " "${yes_mark}"                      || \
+            printf "| %s " "${no_mark}"
+        rm -f "${dir_name}"/old_file${file_perm} 2>/dev/null  && \
+            printf "| %s " "${yes_mark}"                      || \
+            printf "| %s " "${no_mark}"
+        printf "|\n"
+    done
+done
+
+# ------------------------------------------------------------------------------
+# Move File Between Directories
+# ------------------------------------------------------------------------------
+
+printf "\n## Move File Between Directories\n\n"
+
+printf "| Src Dir Perm | File Perm |"
+for dst_dir_perm in {0..7}
+do
+    printf " %s------ |" "${perm_str[${dst_dir_perm}]}"
+done
+printf "\n"
+printf "| ------------ | --------- |"
+for dst_dir_perm in {0..7}
+do
+    printf " --------- |"
+done
+printf "\n"
+
+for src_dir_perm in {0..7}
+do
+    src_dir_name="test${src_dir_perm}"
+    for file_perm in {0..7}
+    do
+        [[ ${file_perm} == 0 ]]                               && \
+            printf "| %s------ " "${perm_str[$dir_perm]}"     || \
+            printf "| "
+        printf "| %s------ " "${perm_str[$file_perm]}"
+        for dst_dir_perm in {0..7}
+        do
+            src_fn="${src_dir_name}/samp_file${file_perm}"
+            dst_fn="test${dst_dir_perm}/new_file${file_perm}"
+            mv -f "${src_fn}" "${dst_fn}" 2>/dev/null           && \
+                printf "| %s " "${yes_mark}"                      || \
+                printf "| %s " "${no_mark}"
+        done
         printf "|\n"
     done
 done
