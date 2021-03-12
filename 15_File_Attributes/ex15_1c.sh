@@ -105,38 +105,6 @@ do
 done
 
 # ------------------------------------------------------------------------------
-# File Access
-# ------------------------------------------------------------------------------
-
-printf "\n## File Access\n\n"
-
-printf "| Dir Perm | File Perm | Open File | Write File | Delete File |\n"
-printf "| -------- | --------- | --------- | ---------- | ----------- |\n"
-
-for dir_perm in {0..7}
-do
-    dir_name="test${dir_perm}"
-    chmod "${dir_perm}00" "${dir_name}"
-    for file_perm in {0..7}
-    do
-        [[ ${file_perm} == 0 ]]                               && \
-            printf "| %s------ " "${perm_str[$dir_perm]}"     || \
-            printf "| "
-        printf "| %s------ " "${perm_str[$file_perm]}"
-        [[ -r "${dir_name}"/old_file${file_perm} ]]           && \
-            printf "| %s " "${yes_mark}"                      || \
-            printf "| %s " "${no_mark}"
-        [[ -w "${dir_name}"/old_file${file_perm} ]]           && \
-            printf "| %s " "${yes_mark}"                      || \
-            printf "| %s " "${no_mark}"
-        rm -f "${dir_name}"/old_file${file_perm} 2>/dev/null  && \
-            printf "| %s " "${yes_mark}"                      || \
-            printf "| %s " "${no_mark}"
-        printf "|\n"
-    done
-done
-
-# ------------------------------------------------------------------------------
 # Move File Between Directories
 # ------------------------------------------------------------------------------
 
@@ -168,7 +136,8 @@ do
         do
             src_fn="${src_dir_name}/samp_file${file_perm}"
             dst_fn="test${dst_dir_perm}/new_file${file_perm}"
-            mv -f "${src_fn}" "${dst_fn}" 2>/dev/null           && \
+            mv -f "${src_fn}" "${dst_fn}" 2>/dev/null             && \
+                mv "${dst_fn}" "${src_fn}"                        && \
                 printf "| %s " "${yes_mark}"                      || \
                 printf "| %s " "${no_mark}"
         done
