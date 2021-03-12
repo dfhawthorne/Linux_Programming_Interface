@@ -20,21 +20,23 @@ no_mark=":negative_squared_cross_mark:"
 
 for dir_perm in {0..7}
 do
-    dir_name="test${dir_perm}"
-    if [[ -d "${dir_name}" ]] 
-    then
-        chmod 700 "${dir_name}"
-        rm -fR "${dir_name}"
-    fi
-    mkdir "${dir_name}"
-    for file_perm in {0..7}
+    for dir_name in "test${dir_perm}" "testa${dir_perm}"
     do
-        touch "${dir_name}"/old_file${file_perm}
-        touch "${dir_name}"/samp_file${file_perm}
-        chmod "${file_perm}00" "${dir_name}"/old_file${file_perm}
-        chmod "${file_perm}00" "${dir_name}"/samp_file${file_perm}
+        if [[ -d "${dir_name}" ]] 
+        then
+            chmod 700 "${dir_name}"
+            rm -fR "${dir_name}"
+        fi
+        mkdir "${dir_name}"
+        for file_perm in {0..7}
+        do
+            touch "${dir_name}"/old_file${file_perm}
+            touch "${dir_name}"/samp_file${file_perm}
+            chmod "${file_perm}00" "${dir_name}"/old_file${file_perm}
+            chmod "${file_perm}00" "${dir_name}"/samp_file${file_perm}
+        done
+        chmod "${dir_perm}00" "${dir_name}"
     done
-    chmod "${dir_perm}00" "${dir_name}"
 done
 
 # ------------------------------------------------------------------------------
@@ -178,9 +180,12 @@ do
         for dst_dir_perm in {0..7}
         do
             src_fn="${src_dir_name}/samp_file${file_perm}"
-            dst_fn="test${dst_dir_perm}/samp_file${file_perm}"
+            dst_fn="testa${dst_dir_perm}/samp_file${file_perm}"
             mv -f "${src_fn}" "${dst_fn}" 2>/dev/null             && \
-                mv "${dst_fn}" "${src_fn}"                        && \
+                chmod 700 "${src_dir_name}"                       && \
+                touch "${src_fn}"                                 && \
+                chmod "${file_perm}00" "${src_fn}"                && \
+                chmod "${src_dir_perm}00" "test${src_dir_perm}"   && \
                 printf "| %s " "${yes_mark}"                      || \
                 printf "| %s " "${no_mark}"
         done
