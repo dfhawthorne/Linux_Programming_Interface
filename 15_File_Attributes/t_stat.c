@@ -17,6 +17,7 @@
 
    The '-l' option indicates that lstat() rather than stat() should be used.
 */
+#define _XOPEN_SOURCE 700
 #include <sys/sysmacros.h>
 #if defined(_AIX)
 #define _BSD
@@ -79,9 +80,13 @@ displayStatInfo(const struct stat *sb)
     printf("Optimal I/O block size:   %ld bytes\n", (long) sb->st_blksize);
     printf("512B blocks allocated:    %lld\n", (long long) sb->st_blocks);
 
-    printf("Last file access:         %s", ctime(&sb->st_atime));
-    printf("Last file modification:   %s", ctime(&sb->st_mtime));
-    printf("Last status change:       %s", ctime(&sb->st_ctime));
+    char atime_str[26], ctime_str[26], mtime_str[26];
+    ctime_r(&sb->st_atime, atime_str); atime_str[19] = '\0';
+    ctime_r(&sb->st_mtime, mtime_str); mtime_str[19] = '\0';
+    ctime_r(&sb->st_ctime, ctime_str); ctime_str[19] = '\0';
+    printf("Last file access:         %s.%09ld %s", atime_str, sb->st_atim.tv_nsec, atime_str+20);
+    printf("Last file modification:   %s.%09ld %s", mtime_str, sb->st_mtim.tv_nsec, mtime_str+20);
+    printf("Last status change:       %s.%09ld %s", ctime_str, sb->st_ctim.tv_nsec, ctime_str+20);
 }
 
 int
