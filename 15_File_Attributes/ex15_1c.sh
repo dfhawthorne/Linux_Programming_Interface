@@ -18,6 +18,10 @@ perm_str[7]="rwx"
 yes_mark=":heavy_check_mark:"
 no_mark=":negative_squared_cross_mark:"
 
+# ------------------------------------------------------------------------------
+# Create test directories and files
+# ------------------------------------------------------------------------------
+
 for dir_perm in {0..7}
 do
     for dir_name in "test${dir_perm}" "testa${dir_perm}"
@@ -190,6 +194,22 @@ do
                 printf "| %s " "${no_mark}"
         done
         printf "|\n"
+    done
+done
+
+# ------------------------------------------------------------------------------
+# Clean up
+# ------------------------------------------------------------------------------
+
+for dir_perm in {0..7}
+do
+    for dir_name in "test${dir_perm}" "testa${dir_perm}"
+    do
+        if [[ -d "${dir_name}" ]] 
+        then
+            chmod 700 "${dir_name}"
+            rm -fR "${dir_name}"
+        fi
     done
 done
 

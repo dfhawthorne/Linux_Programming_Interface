@@ -1,0 +1,84 @@
+/*******************************************************************************
+ * access()  checks whether the calling process can access the file pathname. If
+ * pathname is a symbolic link, it is dereferenced.
+ *
+ * The mode specifies the accessibility check(s) to be performed, and is either
+ * the value F_OK, or a mask consisting of the bitwise OR of one or more of R_OK,
+ * W_OK, and X_OK.  F_OK tests for the existence of the file. R_OK, W_OK, and
+ * X_OK  test whether the file exists and grants read, write, and execute permis‐
+ * sions, respectively.
+ *
+ * The check is done using the calling process's real UID and GID, rather than
+ * the effective IDs as is done when actually attempting an operation (e.g.,
+ * open(2)) on the file. Similarly, for the root user, the check uses the set of
+ * permitted capabilities rather than the set of effective capabilities; and for
+ * non-root users, the check uses an empty set of capabilities.
+ ******************************************************************************/
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+
+
+void print_help(char *msg, int rc)
+{
+    if (msg != NULL) fprintf(stderr, "%s\n", msg);
+    fprintf(stderr, "my_access -h\n");
+    fprintf(stderr, "my_access -f file\n");
+    fprintf(stderr, "my_access [-r] [-w] [-x] file\n");
+    fprintf(stderr, "\t-h\tPrint this help message\n");
+    fprintf(stderr, "\t-f\tTest for existence of file\n");
+    fprintf(stderr, "\t-r\tTest whether effective user can read file\n");
+    fprintf(stderr, "\t-w\tTest whether effective user can write file\n");
+    fprintf(stderr, "\t-x\tTest whether effective user can execute file\n");
+    exit(rc);
+}
+
+int my_access(const char *pathname, int mode)
+{
+}
+
+int
+main(int argc, char *argv[])
+{
+    int fname;                  /* Location of filename argument in argv[] */
+    int opt;
+    int f_mode = 0;             /* F_OK maps to zero (0) */
+    int rwx_mode = 0;
+    char *invalid_opt_msg_fmt = "'%c' is an invalid option";
+    char *invalid_opt_msg;
+    char *file_missing_msg = "file name is missing";
+    char *conflict_args_msg = "specify either -f or a combination of -r -w -x";
+    
+    invalid_opt_msg = malloc(strlen(invalid_opt_msg_fmt));
+    while ((opt = getopt(argc, argv, ":hfrwx")) != -1)
+    {
+        switch (opt)
+        {
+            case 'f': f_mode = 1; break;
+            case 'h': print_help(NULL, EXIT_SUCCESS); break;
+            case 'r': rwx_mode |= R_OK; break;
+            case 'w': rwx_mode |= W_OK; break;
+            case 'x': rwx_mode |= X_OK; break;
+            case '?':
+                sprintf(invalid_opt_msg, invalid_opt_msg_fmt, (char)optopt);
+                print_help(invalid_opt_msg, EXIT_FAILURE);
+                break;
+        }
+    }
+    
+    fname = optind;
+
+    if (fname >= argc) print_help(file_missing_msg, EXIT_FAILURE);
+    if (f_mode == 0)
+    {
+        if (rwx_mode == 0) print_help(conflict_args_msg, EXIT_FAILURE);
+    }
+    else
+    {
+        if (rwx_mode != 0) print_help(conflict_args_msg, EXIT_FAILURE);
+    }
+
+    exit(EXIT_SUCCESS);
+}
