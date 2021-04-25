@@ -3,7 +3,7 @@
 # ------------------------------------------------------------------------------
 
 .PHONY : all
-all : t_stat my_access
+all : t_stat my_access chmod_arX
 
 t_stat: t_stat.c
 	gcc -o t_stat t_stat.c file_perms.c

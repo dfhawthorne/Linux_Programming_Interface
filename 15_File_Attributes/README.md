@@ -10,6 +10,7 @@
   * [Exercise 15-3](#exercise-15-3)
   * [Exercise 15-4](#exercise-15-4)
   * [Exercise 15-5](#exercise-15-5)
+  * [Exercise 15-6](#exercise-15-6)
 
 
 ## Exercise 15-1
@@ -81,3 +82,21 @@ seteuid(32764) failed: Operation not permitted
 ## Exercise 15-5
 
 My answer is in [EX_15_5.md](EX_15_5.md)
+
+## Exercise 15-6
+
+1. Run `make chmod_arX`
+1. Run `./chmod_arX.sh`
+
+Sample output is:
+```
+$ ./chmod_arX.sh
+Before chmod a+rX...
+d--------- 2 douglas douglas 4096 Apr 25 19:18 test_dir
+---------- 1 douglas douglas    0 Apr 25 19:18 test_file
+-rw-rw-r-x 1 douglas douglas    0 Apr 25 19:18 test_prog
+After chmod a+rX...
+dr-xr-xr-x 2 douglas douglas 4096 Apr 25 19:18 test_dir
+-r--r--r-- 1 douglas douglas    0 Apr 25 19:18 test_file
+-rwxrwxr-x 1 douglas douglas    0 Apr 25 19:18 test_prog
+```
