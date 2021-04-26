@@ -11,6 +11,7 @@
   * [Exercise 15-4](#exercise-15-4)
   * [Exercise 15-5](#exercise-15-5)
   * [Exercise 15-6](#exercise-15-6)
+  * [Exercise 15-7](#exercise-15-7)
 
 
 ## Exercise 15-1
@@ -100,3 +101,12 @@ dr-xr-xr-x 2 douglas douglas 4096 Apr 25 19:18 test_dir
 -r--r--r-- 1 douglas douglas    0 Apr 25 19:18 test_file
 -rwxrwxr-x 1 douglas douglas    0 Apr 25 19:18 test_prog
 ```
+
+## Exercise 15-7
+
+1. Run `make my_chattr`
+1. Run `./my_chattr.sh`
+
+Sample output is:
+```
+
