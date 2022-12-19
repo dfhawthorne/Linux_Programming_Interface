@@ -14,8 +14,8 @@ my_access: my_access.c
 	chmod u+s my_access
 
 run_test_chattr: my_chattr my_chattr.dat
-	sudo ./setup_test_chattr.sh 
-	sudo ./run_test_chattr.sh
+	ansible-playbook setup_test_chattr.yml
+#	sudo ./run_test_chattr.sh
 
 %: %.c
 	gcc -o $@ $^ 

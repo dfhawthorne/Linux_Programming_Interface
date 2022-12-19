@@ -1,0 +1,102 @@
+---
+# ------------------------------------------------------------------------------
+# Set up test file systems
+# ------------------------------------------------------------------------------
+
+- hosts:            all
+  vars:
+    test_fs:
+    - {
+      disk:         "/dev/sdb",
+      part_num:     1,
+      part_start:   "0%",
+      part_end:     "33%",
+      mp:           "/mount/test_fs/ext2_base",
+      fstype:       "ext2"
+      }
+    - {
+      disk:         "/dev/sdb",
+      part_num:     2,
+      part_start:   "33%",
+      part_end:     "66%",
+      mp:           "/mount/test_fs/ext2_mine",
+      fstype:       "ext2"
+      }
+    - {
+      disk:         "/dev/sdb",
+      part_num:     3,
+      part_start:   "66%",
+      part_end:     "100%",
+      mp:           "/mount/test_fs/ext3_base",
+      fstype:       "ext3"
+      }
+    - {
+      disk:         "/dev/sdc",
+      part_num:     1,
+      part_start:   "0%",
+      part_end:     "33%",
+      mp:           "/mount/test_fs/ext3_mine",
+      fstype:       "ext3"
+      }
+    - {
+      disk:         "/dev/sdc",
+      part_num:     2,
+      part_start:   "33%",
+      part_end:     "66%",
+      mp:           "/mount/test_fs/ext4_base",
+      fstype:       "ext4"
+      }
+    - {
+      disk:         "/dev/sdc",
+      part_num:     3,
+      part_start:   "66%",
+      part_end:     "100%",
+      mp:           "/mount/test_fs/ext4_mine",
+      fstype:       "ext4"
+      }
+
+# ------------------------------------------------------------------------------
+# Initialise a disk partition and format as a file system
+# ------------------------------------------------------------------------------
+
+  tasks:
+
+  - name:           "Initialize disk partition"
+    community.general.parted:
+      device:       "{{ item.disk }}"
+      number:       "{{ item.part_num }}"
+      state:        present
+      label:        msdos
+      part_type:    primary
+      part_start:   "{{ item.part_start }}"
+      part_end:     "{{ item.part_end }}"
+    loop:           "{{ test_fs }}"
+
+  - name:           "Create mount point"
+    ansible.builtin.file:
+      path:         "{{ item.mp }}"
+      state:        directory
+    loop:           "{{ test_fs }}"
+
+  - name:           "Format file system"
+    community.general.filesystem:
+      dev:          "{{ item.disk }}{{ item.part_num }}"
+      fstype:       "{{ item.fstype }}"
+      state:        present
+    loop:           "{{ test_fs }}"
+
+  - name:           "Mount filesystem"
+    ansible.posix.mount:
+      fstype:       "{{ item.fstype }}"
+      path:         "{{ item.mp }}"
+      src:          "{{ item.disk }}{{ item.part_num }}"
+      state:        mounted
+    loop:           "{{ test_fs }}"
+
+  - name:           "Create target file in mounted file system"
+    ansible.builtin.file:
+      path:         "{{ item.mp }}/target"
+      state:        touch
+    loop:           "{{ test_fs }}"
+
+...
