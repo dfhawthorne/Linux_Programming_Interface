@@ -87,6 +87,8 @@ do
             mkdir "${mp}"
         findmnt --mountpoint "${mp}" &>/dev/null || \
             mount "${fs_data}" "${mp}"
+        [[ -f "${mp}/target" ]] || \
+            touch "${mp}/target"
     done
 done
 
