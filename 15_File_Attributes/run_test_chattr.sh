@@ -45,7 +45,7 @@ then
 fi
 
 parm_file="${my_dir}/my_chattr.dat"
-fs_dir="${my_dir}/test_chattr"
+fs_dir="/mount/test_fs"
 
 # ------------------------------------------------------------------------------
 # Validate configuration
@@ -80,23 +80,45 @@ fi
 # Do a test for each file system
 # ------------------------------------------------------------------------------
 
+cp /dev/null base_results.dat
+cp /dev/null mine_results.dat
+
 exec 3<"${parm_file}" 
 while read -u3 mode
 do 
-    echo ${mode}
     for fs_file in ${fs_list}
     do
         case "${fs_file}" in
             *base*)
-                chattr ${mode} ${fs_file}
+                chattr "${mode}" "${fs_file}"
+                printf '%s: %s %s\n' "${mode}" $(lsattr "${fs_file}") | \
+                    sed -e 's/_base//' \
+                        -e 's/^\+/ADD_/' \
+                        -e 's/^\=/SET_/' \
+                        -e 's/^\-/DEL_/' \
+                        >>base_results.dat
                 ;;
             *mine*)
-                echo ./my_chattr ${mode} ${fs_file}
+                ./my_chattr "${mode}" "${fs_file}"
+                printf '%s: %s %s\n' "${mode}" $(lsattr "${fs_file}") | \
+                    sed -e 's/_mine//' \
+                        -e 's/^\+/ADD_/' \
+                        -e 's/^\=/SET_/' \
+                        -e 's/^\-/DEL_/' \
+                        >>mine_results.dat
                 ;;
             *)  printf '%s: invalid file name (%s)\n' "$0" "${fs_file}" >&2
                 ;;
         esac
     done
 done
+
+# ------------------------------------------------------------------------------
+# Compare results
+# ------------------------------------------------------------------------------
+
+diff \
+    <(sort -k1,3 base_results.dat) \
+    <(sort -k1,3 mine_results.dat)
 
 popd &>/dev/null

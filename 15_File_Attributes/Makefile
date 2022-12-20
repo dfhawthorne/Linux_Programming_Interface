@@ -15,7 +15,7 @@ my_access: my_access.c
 
 run_test_chattr: my_chattr my_chattr.dat
 	ansible-playbook setup_test_chattr.yml
-#	sudo ./run_test_chattr.sh
+	ansible-playbook run_test_chattr.yml
 
 %: %.c
 	gcc -o $@ $^ 

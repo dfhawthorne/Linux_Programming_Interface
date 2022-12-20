@@ -1,0 +1,59 @@
+---
+# ------------------------------------------------------------------------------
+# Compile and run my_chattr on target system against test file systems
+# ------------------------------------------------------------------------------
+
+- hosts:            all
+
+  vars:
+  - src_dir:        "/root/my_chattr"
+  tasks:
+
+  - name:           "Create directories"
+    ansible.builtin.file:
+      path:         "{{ src_dir }}"
+      state:        directory
+  
+  - name:           "Install dev tools"
+    ansible.builtin.dnf:
+      name:
+        -           e2fsprogs
+        -           gcc
+        -           make
+        -           util-linux
+      state:        present
+  
+  - name:           "Copy files to target system"
+    ansible.builtin.copy:
+      dest:         "{{ src_dir }}/{{ item }}"
+      remote_src:   no
+      src:          "{{ item }}"
+    loop:
+      -             "Makefile"
+      -             "my_chattr.c"
+      -             "my_chattr.dat"
+      -             "run_test_chattr.sh"
+             
+  - name:           "Build test program"
+    community.general.make:
+      chdir:        "{{ src_dir }}"
+      make:         "/usr/bin/make"
+      target:       "my_chattr"
+
+  - name:           "Make test program executable"
+    ansible.builtin.file:
+      path:         "{{ src_dir }}/run_test_chattr.sh"
+      mode:         "u+x"
+
+  - name:           "Run test program"
+    ansible.builtin.shell:
+      chdir:        "{{ src_dir }}"
+      cmd:          "{{ src_dir }}/run_test_chattr.sh"
+    register:       run_test_chattr
+
+  - name:           "Show results of test"
+    ansible.builtin.debug:
+      var:          run_test_chattr.stdout_lines
+    when:
+      -             run_test_chattr is defined
+...
