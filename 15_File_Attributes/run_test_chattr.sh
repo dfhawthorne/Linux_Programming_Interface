@@ -80,8 +80,7 @@ fi
 # Do a test for each file system
 # ------------------------------------------------------------------------------
 
-cp /dev/null base_results.dat
-cp /dev/null mine_results.dat
+mkdir -p base_results mine_results
 
 exec 3<"${parm_file}" 
 while read -u3 mode
@@ -91,23 +90,17 @@ do
         case "${fs_file}" in
             *base*)
                 chattr "${mode}" "${fs_file}"
+                result_file=$(echo "${fs_file}" | sed -re 's!.*/([^/]+)_base/target!\1!')"${mode}"
                 printf '%s: %s %s\n' "${mode}" $(lsattr "${fs_file}") | \
-                    sed -re 's/_base//' \
-                        -e 's/^\+/ADD_/' \
-                        -e 's/^\=/SET_/' \
-                        -e 's/^\-/DEL_/' \
-                        -e 's!(.*:) (.*) .*/(.*)/target!\3_\1 \2!' \
-                        >>base_results.dat
+                    sed -re 's!.*: (.*) .*/target!\1!' \
+                        >"base_results/${result_file}"
                 ;;
             *mine*)
                 ./my_chattr "${mode}" "${fs_file}"
+                result_file=$(echo "${fs_file}" | sed -re 's!.*/([^/]+)_mine/target!\1!')"${mode}"
                 printf '%s: %s %s\n' "${mode}" $(lsattr "${fs_file}") | \
-                    sed -re 's/_mine//' \
-                        -e 's/^\+/ADD_/' \
-                        -e 's/^\=/SET_/' \
-                        -e 's/^\-/DEL_/' \
-                        -e 's!(.*:) (.*) .*/(.*)/target!\3_\1 \2!' \
-                        >>mine_results.dat
+                    sed -re 's!.*: (.*) .*/target!\1!' \
+                        >"mine_results/${result_file}"
                 ;;
             *)  printf '%s: invalid file name (%s)\n' "$0" "${fs_file}" >&2
                 ;;
@@ -119,8 +112,6 @@ done
 # Compare results
 # ------------------------------------------------------------------------------
 
-diff \
-    <(sort -k1 base_results.dat) \
-    <(sort -k1 mine_results.dat)
+diff base_results/ mine_results/
 
 popd &>/dev/null

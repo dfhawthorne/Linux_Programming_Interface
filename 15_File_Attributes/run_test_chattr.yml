@@ -51,9 +51,17 @@
       cmd:          "{{ src_dir }}/run_test_chattr.sh"
     register:       run_test_chattr
 
+  - name:           "Show errors from test"
+    ansible.builtin.debug:
+      var:          run_test_chattr.stderr_lines
+    when:
+      -             run_test_chattr is defined
+      -             run_test_chattr.stderr_lines is defined
+
   - name:           "Show results of test"
     ansible.builtin.debug:
       var:          run_test_chattr.stdout_lines
     when:
       -             run_test_chattr is defined
+      -             run_test_chattr.stdout_lines is defined
 ...
