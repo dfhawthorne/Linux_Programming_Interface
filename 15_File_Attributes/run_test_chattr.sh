@@ -92,19 +92,21 @@ do
             *base*)
                 chattr "${mode}" "${fs_file}"
                 printf '%s: %s %s\n' "${mode}" $(lsattr "${fs_file}") | \
-                    sed -e 's/_base//' \
+                    sed -re 's/_base//' \
                         -e 's/^\+/ADD_/' \
                         -e 's/^\=/SET_/' \
                         -e 's/^\-/DEL_/' \
+                        -e 's!(.*:) (.*) .*/(.*)/target!\3_\1 \2!' \
                         >>base_results.dat
                 ;;
             *mine*)
                 ./my_chattr "${mode}" "${fs_file}"
                 printf '%s: %s %s\n' "${mode}" $(lsattr "${fs_file}") | \
-                    sed -e 's/_mine//' \
+                    sed -re 's/_mine//' \
                         -e 's/^\+/ADD_/' \
                         -e 's/^\=/SET_/' \
                         -e 's/^\-/DEL_/' \
+                        -e 's!(.*:) (.*) .*/(.*)/target!\3_\1 \2!' \
                         >>mine_results.dat
                 ;;
             *)  printf '%s: invalid file name (%s)\n' "$0" "${fs_file}" >&2
@@ -118,7 +120,7 @@ done
 # ------------------------------------------------------------------------------
 
 diff \
-    <(sort -k1,3 base_results.dat) \
-    <(sort -k1,3 mine_results.dat)
+    <(sort -k1 base_results.dat) \
+    <(sort -k1 mine_results.dat)
 
 popd &>/dev/null
