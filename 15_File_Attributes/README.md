@@ -104,9 +104,24 @@ dr-xr-xr-x 2 douglas douglas 4096 Apr 25 19:18 test_dir
 
 ## Exercise 15-7
 
-1. Run `make my_chattr`
-1. Run `./my_chattr.sh`
+1. Create VM with extra LUNs
+1. Run `make run_test_chattr`
 
-Sample output is:
+Tail of sample output is:
 ```
+TASK [Run test program] *******************************************************************************
+changed: [ol8-chattr]
 
+TASK [Show errors from test] **************************************************************************
+ok: [ol8-chattr] => {
+    "run_test_chattr.stderr_lines": []
+}
+
+TASK [Show results of test] ***************************************************************************
+ok: [ol8-chattr] => {
+    "run_test_chattr.stdout_lines": []
+}
+
+PLAY RECAP ********************************************************************************************
+ol8-chattr                 : ok=9    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+```
