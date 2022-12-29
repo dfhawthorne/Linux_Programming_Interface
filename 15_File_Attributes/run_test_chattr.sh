@@ -90,14 +90,16 @@ do
         case "${fs_file}" in
             *base*)
                 chattr "${mode}" "${fs_file}"
-                result_file=$(echo "${fs_file}" | sed -re 's!.*/([^/]+)_base/target!\1!')"${mode}"
+                result_file=$(echo "${fs_file}" | \
+                    sed -re 's!.*/([^/]+)_base/target!\1!')"${mode}"
                 printf '%s: %s %s\n' "${mode}" $(lsattr "${fs_file}") | \
                     sed -re 's!.*: (.*) .*/target!\1!' \
                         >"base_results/${result_file}"
                 ;;
             *mine*)
                 ./my_chattr "${mode}" "${fs_file}"
-                result_file=$(echo "${fs_file}" | sed -re 's!.*/([^/]+)_mine/target!\1!')"${mode}"
+                result_file=$(echo "${fs_file}" | \
+                    sed -re 's!.*/([^/]+)_mine/target!\1!')"${mode}"
                 printf '%s: %s %s\n' "${mode}" $(lsattr "${fs_file}") | \
                     sed -re 's!.*: (.*) .*/target!\1!' \
                         >"mine_results/${result_file}"
