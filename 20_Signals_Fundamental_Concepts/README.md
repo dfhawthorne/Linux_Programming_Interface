@@ -10,7 +10,7 @@ make test_1_n
 ```
 
 The `logs/test1/receiver.log` file shows:
-``text
+```text
 sig_receiver: PID=21035
 sig_receiver: signal  10 caught 499865 time(s)
 ```
