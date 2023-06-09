@@ -65,6 +65,7 @@ int main(int argc, char* argv[]) {
     int   sleep_time     =  0;
     char *full_pgm_name  = NULL;
     char *pgm_name       = NULL;
+    int   ignore_signals[NSIG];
 
     /* Static variables used to parse passed arguments */
 
@@ -72,6 +73,7 @@ int main(int argc, char* argv[]) {
     static int verbose          = 0;
     static int sleep_time_found = 0;
     static int use_signal       = 0;
+    static int ignore_signal    = 0;
 
     static struct option long_options[] = {
         {"help",          no_argument,       &show_help,        1 },
@@ -79,6 +81,7 @@ int main(int argc, char* argv[]) {
         {"sleep-time",    required_argument, &sleep_time_found, 1 },
         {"use-signal",    no_argument,       &use_signal,       1 },
         {"use-sigaction", no_argument,       &use_signal,       0 },
+        {"ignore",        required_argument, &ignore_signal,    1 },
         {0,               0,                 0,                 0 }
     };
 
@@ -96,6 +99,7 @@ int main(int argc, char* argv[]) {
             argv[0]);
         exit(EXIT_FAILURE);
     }
+    for (int i = 0; i < NSIG; i++) ignore_signals[i] = 0;
     int option_index = 0;
     while (1) {
         int c = getopt_long_only(argc, argv, "", long_options, &option_index);
@@ -129,6 +133,24 @@ int main(int argc, char* argv[]) {
             case 3: /* --use-signal */
             case 4: /* --use-sigaction */
                 break;
+            case 5: /* --ignore=<i> */
+                if (optarg == NULL) {
+                    fprintf(stderr,
+                    "%s: No argument supplied for --ignore\n",
+                    pgm_name);
+                    exit(EXIT_FAILURE);
+                }
+                int sig = atoi(optarg);
+                if (sig > 0 && sig < NSIG)
+                    ignore_signals[sig] = 1;
+                else {
+                    fprintf(stderr,
+                    "%s: Invalid signal (%d) supplied for --ignore\n",
+                    pgm_name,
+                    sig);
+                    exit(EXIT_FAILURE);
+                }
+                break;
             default:
                 fprintf(stderr, "%s: Invalid arg found %d\n", pgm_name, option_index);
                 break;
@@ -144,8 +166,9 @@ int main(int argc, char* argv[]) {
             "%s [options ...]\n\
 \tCounts signals received until a SIGINT is received.\n\
 \t--help\t\tShows this help message.\n\
+\t--ignore\tIgnore this signal. Can be specified multiple times.\n\
 \t--sleep-time s\tSleep time to block all signals\n\t\t\tOptional.\n\
-\t--use-signal\tUse signal to establish signal handlers.\n\
+\t--use-signal\tUse signal to establish signal handlers (usually SIGINT).\n\
 \t--use-sigaction\tUse sigaction to establish signal handlers.\n\
 \t\t\tDefault. This option is exclusive of --use-signal.\n\
 \t--verbose\tShows verbose output.\n",
@@ -169,6 +192,14 @@ int main(int argc, char* argv[]) {
             fprintf(stderr,
                 "%s: No sleep time was specified.\n",
                 pgm_name);
+        if (ignore_signal) {
+            for (int sig = 1; sig < NSIG; sig++)
+                fprintf(stderr,
+                    "%s: signal (%d) will %sbe ignored.\n",
+                    pgm_name,
+                    sig,
+                    ignore_signals[sig] ? "" : "not ");
+        }
     }
 
     /* ----------------------------------------------------------------------
@@ -178,11 +209,24 @@ int main(int argc, char* argv[]) {
     pid_t receiver_pid = getpid();
     if (verbose) fprintf(stderr, "%s: PID=%ld\n", pgm_name, (long)receiver_pid);
     printf("%s: PID=%ld\n", pgm_name, (long)receiver_pid);
+
+    if (ignore_signal) {
+        for (int sig = 1; sig < NSIG; sig++) {
+            if (!ignore_signals[sig]) continue;
+            printf("%s: signal (%d) will be ignored.\n",
+                pgm_name,
+                sig);
+        }
+    } else {
+        printf("%s: No signals will be ignored.\n", pgm_name);
+    }
     
     /* Set signal handler for all signals */
 
-    if (verbose) fprintf(stderr, "%s: Set signal handler for all signals\n", pgm_name);
-        static struct sigaction new_signal_action;
+    if (verbose)
+        fprintf(stderr, "%s: Set signal handler for all signals\n", pgm_name);
+    
+    static struct sigaction new_signal_action;
 
     new_signal_action.sa_flags   = 0;
     sigemptyset(&new_signal_action.sa_mask);
@@ -194,6 +238,40 @@ int main(int argc, char* argv[]) {
             (use_signal) ? "signal" : "sigaction");
 
     for (int sig = 1; sig < NSIG; sig++) {
+        if (ignore_signals[sig]) {
+            if (verbose)
+                fprintf(stderr, "%s: ignoring signal (%d)\n", pgm_name, sig);
+            if (use_signal)
+                if (signal(sig, SIG_IGN) == SIG_ERR) {
+                    fprintf(stderr,
+                        "%s: ignoring signal=%d through signal() failed: %m\n",
+                        pgm_name,
+                        sig);
+                } else {
+                    if (verbose) {
+                        fprintf(stderr,
+                            "%s: ignoring signal=%d through signal().\n",
+                            pgm_name,
+                            sig);
+                    }
+                }
+            else {
+                new_signal_action.sa_handler = SIG_IGN;
+                if (sigaction(sig, &new_signal_action, NULL) == -1) {
+                    fprintf(stderr,
+                        "%s: ignoring signal=%d through sigaction() failed: %m",
+                        pgm_name,
+                        sig);
+                } else {
+                    if (verbose)
+                        fprintf(stderr,
+                            "%s: ignoring signal=%d through sigaction().\n",
+                            pgm_name,
+                            sig);
+                }
+            }
+            continue;
+        }
         switch (sig) {
             case  9: /* SIGKILL */
             case 19: /* SIGTSTP */
@@ -211,13 +289,13 @@ int main(int argc, char* argv[]) {
                 if (use_signal)
                     if (signal(sig, terminate_pgm) == SIG_ERR) {
                         fprintf(stderr,
-                            "%s: adding of signal handler (terminate_pgm) for sig=%d failed: %m\n",
+                            "%s: adding of signal handler (terminate_pgm) for sig=%d through signal() failed: %m\n",
                             pgm_name,
                             sig);
                     } else {
                         if (verbose) {
                             fprintf(stderr,
-                                "%s: signal handler (terminate_pgm) added for signal=%d through signal\n",
+                                "%s: signal handler (terminate_pgm) added for signal=%d through signal().\n",
                                 pgm_name,
                                 sig);
                         }
@@ -226,13 +304,13 @@ int main(int argc, char* argv[]) {
                     new_signal_action.sa_handler = terminate_pgm;
                     if (sigaction(sig, &new_signal_action, NULL) == -1) {
                         fprintf(stderr,
-                            "%s: adding of signal handler (terminate_pgm) for signal=%d through sigaction failed: %m",
+                            "%s: adding of signal handler (terminate_pgm) for signal=%d through sigaction() failed: %m",
                             pgm_name,
                             sig);
                     } else {
                         if (verbose)
                             fprintf(stderr,
-                                "%s: signal handler (terminate_pgm) added for signal=%d through sigaction\n",
+                                "%s: signal handler (terminate_pgm) added for signal=%d through sigaction()\n",
                                 pgm_name,
                                 sig);
                     }
@@ -242,13 +320,13 @@ int main(int argc, char* argv[]) {
                 if (use_signal) {
                     if (signal(sig, signal_handler) == SIG_ERR) {
                         fprintf(stderr,
-                            "%s: adding of signal handler (signal_handler) for sig=%d failed: %m\n",
+                            "%s: adding of signal handler (signal_handler) for sig=%d through signal() failed: %m\n",
                             pgm_name,
                             sig);
                     } else {
                         if (verbose)
                             fprintf(stderr,
-                                "%s: signal handler (signal_handler) added for signal=%d through signal\n",
+                                "%s: signal handler (signal_handler) added for signal=%d through signal().\n",
                                 pgm_name,
                                 sig);
                     }
@@ -256,13 +334,13 @@ int main(int argc, char* argv[]) {
                     new_signal_action.sa_handler = signal_handler;
                     if (sigaction(sig, &new_signal_action, NULL) == -1) {
                         fprintf(stderr,
-                            "%s: adding of signal handler (signal_handler) for signal=%d through sigaction failed: %m",
+                            "%s: adding of signal handler (signal_handler) for signal=%d through sigaction() failed: %m",
                             pgm_name,
                             sig);
                     } else {
                         if (verbose)
                             fprintf(stderr,
-                                "%s: signal handler (signal_handler) added for signal=%d through sigaction\n",
+                                "%s: signal handler (signal_handler) added for signal=%d through sigaction()\n",
                                 pgm_name,
                                 sig);
                     }
@@ -353,6 +431,7 @@ int main(int argc, char* argv[]) {
      * Display number of signals received.
      * ---------------------------------------------------------------------- */
 
+    int no_signals_caught = 1;
     for (int sig = 1; sig < NSIG; sig++) {
         if (verbose)
             fprintf(stderr,
@@ -360,12 +439,16 @@ int main(int argc, char* argv[]) {
                 pgm_name,
                 sig,
                 signal_count[sig]);
-        if (signal_count[sig] != 0)
+        if (signal_count[sig] != 0) {
+            no_signals_caught = 0;
             printf("%s: signal %3d caught %6d time(s)\n",
                 pgm_name,
                 sig,
                 signal_count[sig]);
+        }
     }
+    if (no_signals_caught)
+        printf("%s: No signals were caught.\n", pgm_name);
 
     if (verbose) fprintf(stderr, "%s: Completed.\n", pgm_name);
 

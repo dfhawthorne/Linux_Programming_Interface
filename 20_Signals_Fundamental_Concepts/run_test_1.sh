@@ -7,7 +7,7 @@
 # We need TEMP as the 'eval set --' would nuke the return value of getopt.
 # ------------------------------------------------------------------------------
 
-TEMP=$(getopt --options 'vs:' --longoptions 'verbose,sleep-time:'  -- "$@")
+TEMP=$(getopt --options 'vs:i:' --longoptions 'verbose,sleep-time:,ignore:'  -- "$@")
 
 if [ $? -ne 0 ]; then
     echo 'Terminating...' >&2
@@ -20,6 +20,7 @@ unset TEMP
 
 sleep_time=0
 verbose_mode=''
+ignore_list=''
 
 while true; do
     case "$1" in
@@ -30,6 +31,11 @@ while true; do
         ;;
         '-s'|'--sleep-time')
             sleep_time="$2"
+            shift 2
+            continue
+        ;;
+        '-i'|'--ignore')
+            ignore_list="--ignore=$2"
             shift 2
             continue
         ;;
@@ -57,6 +63,7 @@ pid_file=logs/test1/pid
 
 ./sig_receiver "${verbose_mode}" \
     "${sleep_parms}" \
+    "${ignore_list}" \
     --use-sigaction  \
     >logs/test1/sig_receiver.log \
     2>logs/test1/sig_receiver.err &

@@ -1,7 +1,6 @@
 test*
 logs
 sig_action
-sig_ignore
 sig_interrupt
 sig_receiver
 sig_sender
