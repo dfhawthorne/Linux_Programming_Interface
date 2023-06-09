@@ -1,8 +1,8 @@
 # Chapter 20: Signals: Fundamental Concepts
 
-## 20-1
+## Exercise 20-1
 
-### 20-1 Without Sleeping
+### Exercise 20-1 Without Sleeping
 
 To run the solution without sleeping, use:
 ```bash
@@ -26,7 +26,7 @@ To get verbose output, use:
 make test_1_n_v
 ```
 
-### 20-2 With Sleeping
+### Exercise 20-1 With Sleeping
 
 To run the solution with sleeping, use:
 ```bash
@@ -34,7 +34,7 @@ make test_1_s
 ```
 
 The `logs/test1/receiver.log` file shows:
-``text
+```text
 sig_receiver: PID=21713
 sig_receiver: sleeping for 5 seconds.
 sig_receiver: pending signals are:
@@ -53,11 +53,11 @@ To get verbose output, use:
 make test_1_s_v
 ```
 
-## 20-2
+## Exercise 20-2
 
 
-## 20-3
+## Exercixe 20-3
 
 
-## 20-4
+## Exercise 20-4
 
