@@ -19,7 +19,7 @@ clean:
 # ------------------------------------------------------------------------------
 
 test_%_v: verbose_mode ::= --verbose
-test_1_s test_1_s_v: sleep_time ::= "--sleep-time=5"
+test_1_s test_1_s_v test_2 test_2_v: sleep_time ::= "--sleep-time=5"
 test_2 test_2_v: ignore_mode ::= "--ignore=10"
 test:   test_1_n   test_1_s   test_2   test_3   test_4
 test_v: test_1_n_v test_1_s_v test_2_v test_3_v test_4_v

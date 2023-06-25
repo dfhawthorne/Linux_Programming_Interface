@@ -71,14 +71,17 @@ make test_2
 
 The `logs/test1/sender.log` file shows:
 ```text
-sig_sender: 1000000 signals (signal=10) are to be sent to process (PID=23787) with a last signal of 2.
+sig_sender: 1000000 signals (signal=10) are to be sent to process (PID=13960) with a last signal of 2.
 sig_sender: Completed.
 ```
 
 The `logs/test1/receiver.log` file shows:
 ```text
-sig_receiver: PID=23787
+sig_receiver: PID=13960
 sig_receiver: signal (10) will be ignored.
+sig_receiver: sleeping for 5 seconds.
+sig_receiver: pending signals are:
+		 10 (User defined signal 1)
 sig_receiver: No signals were caught.
 ```
 

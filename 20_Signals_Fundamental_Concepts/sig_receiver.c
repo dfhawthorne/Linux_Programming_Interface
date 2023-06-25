@@ -20,13 +20,28 @@ static int signal_count[NSIG];
 static volatile sig_atomic_t sigint_received = 0;
 static char *pgm_name       = NULL;
 static int verbose          = 0;
+static char pgm_loc[255];
 
+/* --------------------------------------------------------------------------
+ * Normal exit routine
+ * -------------------------------------------------------------------------- */
+
+static void exit_rtn(void) {
+    if (verbose)
+        fprintf(stderr, "%s: Exiting after location=%s\n", pgm_name, pgm_loc);
+
+    if (fflush(stdout) == -1){
+        fprintf(stderr, "%s: unable to flush STDOUT: %m\n", pgm_name);
+    }
+}
 
 /* --------------------------------------------------------------------------
  * This program is only terminated through the SIGTERM signal.
  * -------------------------------------------------------------------------- */
 
 static void terminate_pgm(int signal) {
+    strncpy(pgm_loc,"terminate_pgm",254);
+
     if (verbose)
         fprintf(stderr, "%s: Program terminated normally\n", pgm_name);
 
@@ -124,8 +139,8 @@ int main(int argc, char* argv[]) {
             case 2: /* --sleep-time=<s> */
                 if (optarg == NULL) {
                     fprintf(stderr,
-                    "%s: No argument supplied for --sleep-time\n",
-                    pgm_name);
+                        "%s: No argument supplied for --sleep-time\n",
+                        pgm_name);
                     exit(EXIT_FAILURE);
                 }
                 sleep_time = atoi(optarg);
@@ -136,8 +151,8 @@ int main(int argc, char* argv[]) {
             case 5: /* --ignore=<i> */
                 if (optarg == NULL) {
                     fprintf(stderr,
-                    "%s: No argument supplied for --ignore\n",
-                    pgm_name);
+                        "%s: No argument supplied for --ignore\n",
+                        pgm_name);
                     exit(EXIT_FAILURE);
                 }
                 int sig = atoi(optarg);
@@ -145,17 +160,32 @@ int main(int argc, char* argv[]) {
                     ignore_signals[sig] = 1;
                 else {
                     fprintf(stderr,
-                    "%s: Invalid signal (%d) supplied for --ignore\n",
-                    pgm_name,
+                        "%s: Invalid signal (%d) supplied for --ignore\n",
+                        pgm_name,
                     sig);
                     exit(EXIT_FAILURE);
                 }
                 break;
             default:
-                fprintf(stderr, "%s: Invalid arg found %d\n", pgm_name, option_index);
+                fprintf(stderr,
+                    "%s: Invalid arg found %d\n",
+                    pgm_name,
+                    option_index);
                 break;
         }
     }
+
+    /* ----------------------------------------------------------------------
+     * Enable exit routine
+     * ---------------------------------------------------------------------- */
+
+    if (atexit(exit_rtn) != 0) {
+        fprintf(stderr, "%s: Unable to set exit function: %m\n", pgm_name);
+        exit(EXIT_FAILURE);
+    }
+    strcpy(pgm_loc, "Arguments set");
+    if (verbose)
+        fprintf(stderr, "%s: exit routine enabled.\n", pgm_name);
 
     /* ----------------------------------------------------------------------
      * Show help message, if required.
@@ -206,6 +236,8 @@ int main(int argc, char* argv[]) {
      * Initialise environment
      * ---------------------------------------------------------------------- */
 
+    strcpy(pgm_loc, "Initialise environment");
+
     pid_t receiver_pid = getpid();
     if (verbose) fprintf(stderr, "%s: PID=%ld\n", pgm_name, (long)receiver_pid);
     printf("%s: PID=%ld\n", pgm_name, (long)receiver_pid);
@@ -238,45 +270,12 @@ int main(int argc, char* argv[]) {
             (use_signal) ? "signal" : "sigaction");
 
     for (int sig = 1; sig < NSIG; sig++) {
-        if (ignore_signals[sig]) {
-            if (verbose)
-                fprintf(stderr, "%s: ignoring signal (%d)\n", pgm_name, sig);
-            if (use_signal)
-                if (signal(sig, SIG_IGN) == SIG_ERR) {
-                    fprintf(stderr,
-                        "%s: ignoring signal=%d through signal() failed: %m\n",
-                        pgm_name,
-                        sig);
-                } else {
-                    if (verbose) {
-                        fprintf(stderr,
-                            "%s: ignoring signal=%d through signal().\n",
-                            pgm_name,
-                            sig);
-                    }
-                }
-            else {
-                new_signal_action.sa_handler = SIG_IGN;
-                if (sigaction(sig, &new_signal_action, NULL) == -1) {
-                    fprintf(stderr,
-                        "%s: ignoring signal=%d through sigaction() failed: %m",
-                        pgm_name,
-                        sig);
-                } else {
-                    if (verbose)
-                        fprintf(stderr,
-                            "%s: ignoring signal=%d through sigaction().\n",
-                            pgm_name,
-                            sig);
-                }
-            }
-            continue;
-        }
         switch (sig) {
             case  9: /* SIGKILL */
             case 19: /* SIGTSTP */
-            case 32:
-            case 33:
+            case 26: /* SIGVTALRM */
+            case 32: /* not defined */
+            case 33: /* not defined */
                 if (verbose) {
                     fprintf(stderr,
                         "%s: handler skipped for signal=%d using %s.\n",
@@ -348,6 +347,8 @@ int main(int argc, char* argv[]) {
                 break;
         }
     }
+    fflush(stdout);
+    fflush(stderr);
 
     if (verbose)
         fprintf(stderr, "%s: Signal handler has been set for all signals\n", pgm_name);
@@ -405,8 +406,53 @@ int main(int argc, char* argv[]) {
             if (verbose) fprintf(stderr, "%s: No pending signals found.\n", pgm_name);
             printf("\t\t<empty pending signal set>\n");
         }
+        fflush(stdout);
+        fflush(stderr);
 
+        /* Ignore signals */
+
+        strcpy(pgm_loc, "Ignore signals");
+        for (int sig = 1; sig < NSIG; sig++) {
+            if (!ignore_signals[sig]) continue;
+            if (verbose)
+                fprintf(stderr, "%s: ignoring signal (%d)\n", pgm_name, sig);
+            if (use_signal)
+                if (signal(sig, SIG_IGN) == SIG_ERR) {
+                    fprintf(stderr,
+                        "%s: ignoring signal=%d through signal() failed: %m\n",
+                        pgm_name,
+                        sig);
+                } else {
+                    if (verbose) {
+                        fprintf(stderr,
+                            "%s: ignoring signal=%d through signal().\n",
+                            pgm_name,
+                            sig);
+                    }
+                }
+            else {
+                new_signal_action.sa_handler = SIG_IGN;
+                if (sigaction(sig, &new_signal_action, NULL) == -1) {
+                    fprintf(stderr,
+                        "%s: ignoring signal=%d through sigaction() failed: %m",
+                        pgm_name,
+                        sig);
+                } else {
+                    if (verbose)
+                        fprintf(stderr,
+                            "%s: ignoring signal=%d through sigaction().\n",
+                            pgm_name,
+                            sig);
+                }
+            }
+        }
+
+        fflush(stdout);
+        fflush(stderr);
+        
         /* unblock all signals */
+
+        strcpy(pgm_loc,"Unblock all signals");
 
         if (verbose) fprintf(stderr, "%s: unblock all signals.\n", pgm_name);
         sigset_t empty_signal_mask;
@@ -419,18 +465,24 @@ int main(int argc, char* argv[]) {
             exit(EXIT_FAILURE);
         }
         if (verbose) fprintf(stderr, "%s: sleep processing completed.\n", pgm_name);
+        fflush(stdout);
+        fflush(stderr);
     }
 
     /* Loop until SIGINT caught */
 
+    strcpy(pgm_loc, "Loop until SIGINT caught");
     if (verbose) fprintf(stderr, "%s: loop until SIGINT caught.\n", pgm_name);
     while (1) if (sigint_received) break;
     if (verbose) fprintf(stderr, "%s: SIGINT caught.\n", pgm_name);
+    fflush(stdout);
+    fflush(stderr);
 
     /* ----------------------------------------------------------------------
      * Display number of signals received.
      * ---------------------------------------------------------------------- */
 
+    strcpy(pgm_loc, "Display number of signals received.");
     int no_signals_caught = 1;
     for (int sig = 1; sig < NSIG; sig++) {
         if (verbose)
@@ -451,6 +503,8 @@ int main(int argc, char* argv[]) {
         printf("%s: No signals were caught.\n", pgm_name);
 
     if (verbose) fprintf(stderr, "%s: Completed.\n", pgm_name);
+    fflush(stdout);
+    fflush(stderr);
 
     exit(EXIT_SUCCESS);
 }
