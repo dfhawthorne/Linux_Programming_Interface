@@ -7,6 +7,8 @@
   * [Exercise 20-1 With Sleeping](exercise-20-1-with-sleeping)
 * [Exercise 20-2](exercise-20-2)
 * [Exercise 20-3](exercise-20-3)
+  * [Exercise 20-3 with SA_NODEFER](test-sa-nodefer)
+  * [Exercise 20-3 with SA_RESETHAND](test-sa-resethand)
 * [Exercise 20-4](exercise-20-4)
 
 ## Exercise 20-1
@@ -92,6 +94,33 @@ make test_2_v
 
 ## Exercixe 20-3
 
+### Test SA_NODEFER
+
+To run tests with the SA_NODEFER set:
+```bash
+make test_3_n
+```
+Sample output (from `test/logs/test3/sig_receiver.log`) is:
+```text
+sig_receiver: PID=37910
+sig_receiver: signals are handled with SA_NODEFER.
+sig_receiver: No signals will be ignored.
+sig_receiver: signal  10 caught      1 time(s)
+```
+
+### Test SA_RESETHAND
+
+To run tests with the SA_RESETHAND set:
+```bash
+make test_3_r
+```
+Sample output (from `test/logs/test3/sig_receiver.log`) is:
+```text
+sig_receiver: PID=38239
+sig_receiver: signals are handled with SA_RESETHAND.
+sig_receiver: No signals will be ignored.
+sig_receiver: signal  10 caught      1 time(s)
+```
 
 ## Exercise 20-4
 

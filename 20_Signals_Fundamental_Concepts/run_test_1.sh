@@ -7,7 +7,7 @@
 # We need TEMP as the 'eval set --' would nuke the return value of getopt.
 # ------------------------------------------------------------------------------
 
-TEMP=$(getopt --options 'vs:i:l:nr' --longoptions 'verbose,sleep-time:,ignore:,log-dir:,nodefer,reset-hand'  -- "$@")
+TEMP=$(getopt --options 'vs:i:l:nrw' --longoptions 'verbose,sleep-time:,ignore:,log-dir:,nodefer,reset-hand,slow-signal'  -- "$@")
 
 if [ $? -ne 0 ]; then
     echo 'Terminating...' >&2
@@ -24,6 +24,7 @@ ignore_list=''
 log_dir='logs/test1'
 nodefer=''
 resethand=''
+slow_signal=1
 
 while true; do
     case "$1" in
@@ -54,6 +55,11 @@ while true; do
         ;;
         '-n'|'--nodefer')
             nodefer='--nodefer'
+            shift
+            continue
+        ;;
+        '-w'|'--slow-signal')
+            slow_signal=0
             shift
             continue
         ;;
@@ -89,13 +95,22 @@ pid_file=${log_dir}/pid
     2>${log_dir}/sig_receiver.err &
 bg_pid=$!
 printf "%d" "${bg_pid}" >"${pid_file}"
-./sig_sender  "${verbose_mode}" \
-    --pid=${bg_pid} \
-    --num-signals=1000000 \
-    --signal=10 \
-    --last-signal=2 \
-    >${log_dir}/sig_sender.log \
-    2>${log_dir}/sig_sender.err
+if [[ ${slow_signal} == 0 ]]
+then
+    for i in 1..100
+    do
+        pkill --signal 10 --pidfile "${pid_file}"
+    done
+    pkill --signal 2 --pidfile "${pid_file}"
+else
+    ./sig_sender  "${verbose_mode}" \
+        --pid=${bg_pid} \
+        --num-signals=1000000 \
+        --signal=10 \
+        --last-signal=2 \
+        >${log_dir}/sig_sender.log \
+        2>${log_dir}/sig_sender.err
+fi
 
 sleep $((( sleep_time + 1 )))
 pkill --signal SIGINT --pidfile "${pid_file}"
