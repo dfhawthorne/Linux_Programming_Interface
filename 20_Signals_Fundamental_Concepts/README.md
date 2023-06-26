@@ -124,3 +124,7 @@ sig_receiver: signal  10 caught      1 time(s)
 
 ## Exercise 20-4
 
+No testing is set up. To compile the solution, run:
+```bash
+make test_4
+```
