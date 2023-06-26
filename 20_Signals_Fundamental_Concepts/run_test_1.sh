@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # ------------------------------------------------------------------------------
-# Run test suite for solution to question 20-1
+# Run test suite for solution to questions 20-1, 20-2, and 20-3.
 # ------------------------------------------------------------------------------
 # Note that we use "$@" to let each command-line parameter expand to a
 # separate word. The quotes around "$@" are essential!
 # We need TEMP as the 'eval set --' would nuke the return value of getopt.
 # ------------------------------------------------------------------------------
 
-TEMP=$(getopt --options 'vs:i:' --longoptions 'verbose,sleep-time:,ignore:'  -- "$@")
+TEMP=$(getopt --options 'vs:i:l:nr' --longoptions 'verbose,sleep-time:,ignore:,log-dir:,nodefer,reset-hand'  -- "$@")
 
 if [ $? -ne 0 ]; then
     echo 'Terminating...' >&2
@@ -21,6 +21,9 @@ unset TEMP
 sleep_time=0
 verbose_mode=''
 ignore_list=''
+log_dir='logs/test1'
+nodefer=''
+resethand=''
 
 while true; do
     case "$1" in
@@ -39,6 +42,21 @@ while true; do
             shift 2
             continue
         ;;
+        '-l'|'--log-dir')
+            log_dir="$2"
+            shift 2
+            continue
+        ;;
+        '-r'|'--reset-hand')
+            resethand='--reset-hand'
+            shift
+            continue
+        ;;
+        '-n'|'--nodefer')
+            nodefer='--nodefer'
+            shift
+            continue
+        ;;
         '--')
             shift
             break
@@ -52,9 +70,9 @@ done
 
 pushd $(dirname $0) >/dev/null
 
-mkdir -p logs/test1
+mkdir -p ${log_dir}
 
-pid_file=logs/test1/pid
+pid_file=${log_dir}/pid
 [[ ${sleep_time} -gt 0 ]] \
     && sleep_parms="--sleep-time=${sleep_time}" \
     || sleep_parms=""
@@ -65,8 +83,10 @@ pid_file=logs/test1/pid
     "${sleep_parms}" \
     "${ignore_list}" \
     --use-sigaction  \
-    >logs/test1/sig_receiver.log \
-    2>logs/test1/sig_receiver.err &
+    "${resethand}" \
+    "${nodefer}" \
+    >${log_dir}/sig_receiver.log \
+    2>${log_dir}/sig_receiver.err &
 bg_pid=$!
 printf "%d" "${bg_pid}" >"${pid_file}"
 ./sig_sender  "${verbose_mode}" \
@@ -74,8 +94,8 @@ printf "%d" "${bg_pid}" >"${pid_file}"
     --num-signals=1000000 \
     --signal=10 \
     --last-signal=2 \
-    >logs/test1/sig_sender.log \
-    2>logs/test1/sig_sender.err
+    >${log_dir}/sig_sender.log \
+    2>${log_dir}/sig_sender.err
 
 sleep $((( sleep_time + 1 )))
 pkill --signal SIGINT --pidfile "${pid_file}"

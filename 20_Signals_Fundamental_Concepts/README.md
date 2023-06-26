@@ -69,13 +69,13 @@ To run the solution with sleeping, use:
 make test_2
 ```
 
-The `logs/test1/sender.log` file shows:
+The `logs/test2/sender.log` file shows:
 ```text
 sig_sender: 1000000 signals (signal=10) are to be sent to process (PID=13960) with a last signal of 2.
 sig_sender: Completed.
 ```
 
-The `logs/test1/receiver.log` file shows:
+The `logs/test2/receiver.log` file shows:
 ```text
 sig_receiver: PID=13960
 sig_receiver: signal (10) will be ignored.

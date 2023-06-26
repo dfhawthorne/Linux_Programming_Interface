@@ -89,6 +89,8 @@ int main(int argc, char* argv[]) {
     static int sleep_time_found = 0;
     static int use_signal       = 0;
     static int ignore_signal    = 0;
+    static int resethand        = 0;
+    static int nodefer          = 0;
 
     static struct option long_options[] = {
         {"help",          no_argument,       &show_help,        1 },
@@ -97,6 +99,8 @@ int main(int argc, char* argv[]) {
         {"use-signal",    no_argument,       &use_signal,       1 },
         {"use-sigaction", no_argument,       &use_signal,       0 },
         {"ignore",        required_argument, &ignore_signal,    1 },
+        {"reset-hand",    no_argument,       &resethand,        1 },
+        {"nodefer",       no_argument,       &nodefer,          1 },
         {0,               0,                 0,                 0 }
     };
 
@@ -166,6 +170,9 @@ int main(int argc, char* argv[]) {
                     exit(EXIT_FAILURE);
                 }
                 break;
+            case 6: /* --reset-hand */
+            case 7: /* --nodefer */
+                break;
             default:
                 fprintf(stderr,
                     "%s: Invalid arg found %d\n",
@@ -201,6 +208,8 @@ int main(int argc, char* argv[]) {
 \t--use-signal\tUse signal to establish signal handlers (usually SIGINT).\n\
 \t--use-sigaction\tUse sigaction to establish signal handlers.\n\
 \t\t\tDefault. This option is exclusive of --use-signal.\n\
+\t--resethand\tUse RESETHAND.\n\
+\t--nodefer\tUse NODEFER.\n\
 \t--verbose\tShows verbose output.\n",
             pgm_name);
         exit(EXIT_SUCCESS);
@@ -230,6 +239,13 @@ int main(int argc, char* argv[]) {
                     sig,
                     ignore_signals[sig] ? "" : "not ");
         }
+        fprintf(
+            stderr,
+            "%s: signals are handled with%s%s%s.\n",
+            pgm_name,
+            (resethand) ? " SA_RESETHAND" : "",
+            (nodefer) ? " SA_NODEFER" : "",
+            (nodefer | resethand) ? "" : " default flags");
     }
 
     /* ----------------------------------------------------------------------
@@ -241,6 +257,12 @@ int main(int argc, char* argv[]) {
     pid_t receiver_pid = getpid();
     if (verbose) fprintf(stderr, "%s: PID=%ld\n", pgm_name, (long)receiver_pid);
     printf("%s: PID=%ld\n", pgm_name, (long)receiver_pid);
+    printf(
+        "%s: signals are handled with%s%s%s.\n",
+        pgm_name,
+        (resethand) ? " SA_RESETHAND" : "",
+        (nodefer) ? " SA_NODEFER" : "",
+        (nodefer | resethand) ? "" : " default flags");
 
     if (ignore_signal) {
         for (int sig = 1; sig < NSIG; sig++) {
@@ -331,6 +353,9 @@ int main(int argc, char* argv[]) {
                     }
                 } else {
                     new_signal_action.sa_handler = signal_handler;
+                    new_signal_action.sa_flags = 0;
+                    new_signal_action.sa_flags |= (resethand) ? SA_RESETHAND : 0;
+                    new_signal_action.sa_flags |= (nodefer) ? SA_NODEFER : 0;
                     if (sigaction(sig, &new_signal_action, NULL) == -1) {
                         fprintf(stderr,
                             "%s: adding of signal handler (signal_handler) for signal=%d through sigaction() failed: %m",
