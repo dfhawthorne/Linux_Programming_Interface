@@ -124,7 +124,23 @@ sig_receiver: signal  10 caught      1 time(s)
 
 ## Exercise 20-4
 
-No testing is set up. To compile the solution, run:
+To run the solution, type:
 ```bash
 make test_4
+```
+Sample output is:
+```text
+make test_4
+gcc -o sig_interrupt sig_interrupt.c 
+./run_test_4.sh 
+sig_interrupt: Enable signal handler for SIGUSR1
+sig_interrupt: Send SIGUSR1 to self
+sig_interrupt: signal was received.
+sig_interrupt: setting of signal handler (signal_handler) through siginterrupt(10,0)
+sig_interrupt: Send SIGUSR1 to self
+sig_interrupt: signal was received.
+sig_interrupt: setting of signal handler (signal_handler) through siginterrupt(10,1)
+sig_interrupt: Send SIGUSR1 to self
+sig_interrupt: signal was received.
+sig_interrupt: Exit.
 ```

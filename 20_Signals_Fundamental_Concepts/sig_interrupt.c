@@ -42,7 +42,9 @@
 
 #define _GNU_SOURCE
 #include <signal.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/types.h>
 
 /* --------------------------------------------------------------------------
@@ -50,12 +52,114 @@
  * -------------------------------------------------------------------------- */
 
 int my_siginterrupt(int sig, int flag) {
-    struct sigaction * oldact = NULL;
-    if (sigaction(sig, NULL, oldact) == -1) return -1;
-    oldact -> sa_flags |= SA_RESTART;
-    return (sigaction(sig, oldact, NULL));
+    static struct sigaction oldact;
+    if (sigaction(sig, NULL, &oldact) == -1) return -1;
+    oldact.sa_flags |= SA_RESTART;
+    if (flag) oldact.sa_flags ^= SA_RESTART;
+    return (sigaction(sig, &oldact, NULL));
 }
 
+/* --------------------------------------------------------------------------
+ * Signal handler
+ * -------------------------------------------------------------------------- */
+
+static int sigint_received = 0;
+static int sigusr1_received = 0;
+
+static void signal_handler(int signal) {
+    switch (signal) {
+        case SIGINT:
+            sigint_received = 1;
+            break;
+        case SIGUSR1:
+            sigusr1_received = 1;
+            break;
+        default:
+            break;
+    }
+}   /* signal_handler */
+
 int main(int argc, char *argv[]) {
+    char *full_pgm_name  = strdup(argv[0]);
+    if (full_pgm_name == NULL) {
+        fprintf(stderr,
+            "%s: unable to duplicate program name: %m\n",
+            argv[0]);
+        exit(EXIT_FAILURE);
+    }
+    char *pgm_name       = basename(full_pgm_name);
+    if (pgm_name == NULL) {
+        fprintf(stderr,
+            "%s: Unable to extract base name for program: %m\n",
+            argv[0]);
+        exit(EXIT_FAILURE);
+    }
+    
+    static struct sigaction new_signal_action;
+    pid_t my_pid = getpid();
+
+    printf("%s: Enable signal handler for SIGUSR1\n", pgm_name);
+    new_signal_action.sa_flags   = 0;
+    sigemptyset(&new_signal_action.sa_mask);
+
+    new_signal_action.sa_handler = signal_handler;
+    if (sigaction(SIGUSR1, &new_signal_action, NULL) == -1) {
+        fprintf(stderr,
+            "%s: adding of signal handler (signal_handler) for signal=%d through sigaction() failed: %m",
+            pgm_name,
+            10);
+        exit(EXIT_FAILURE);
+    }
+
+    printf("%s: Send SIGUSR1 to self\n", pgm_name);
+    if (kill(my_pid, SIGUSR1) == -1) {
+        fprintf(stderr, "%s: send of SIGUSR1 to self failed: %m\n", pgm_name);
+        exit(EXIT_FAILURE);
+    }
+
+    printf("%s: signal was %sreceived.\n", pgm_name, (sigusr1_received) ? "" : "not ");
+
+    printf("%s: setting of signal handler (signal_handler) through siginterrupt(%d,0)\n",
+            pgm_name,
+            10);
+    if (my_siginterrupt(SIGUSR1,0) == -1) {
+        fprintf(stderr,
+            "%s: setting of signal handler (signal_handler) through siginterrupt(%d,0) failed: %m",
+            pgm_name,
+            10);
+        exit(EXIT_FAILURE);
+    }
+
+    sigusr1_received = 0;
+    printf("%s: Send SIGUSR1 to self\n", pgm_name);
+    if (kill(my_pid, SIGUSR1) == -1) {
+        fprintf(stderr, "%s: send of SIGUSR1 to self failed: %m\n", pgm_name);
+        exit(EXIT_FAILURE);
+    }
+
+    printf("%s: signal was %sreceived.\n", pgm_name, (sigusr1_received) ? "" : "not ");
+
+    printf("%s: setting of signal handler (signal_handler) through siginterrupt(%d,1)\n",
+            pgm_name,
+            10);
+    if (my_siginterrupt(SIGUSR1,1) == -1) {
+        fprintf(stderr,
+            "%s: setting of signal handler (signal_handler) through siginterrupt(%d,1) failed: %m\n",
+            pgm_name,
+            10);
+        exit(EXIT_FAILURE);
+    }
+
+    sigusr1_received = 0;
+    printf("%s: Send SIGUSR1 to self\n", pgm_name);
+    if (kill(my_pid, SIGUSR1) == -1) {
+        fprintf(stderr, "%s: send of SIGUSR1 to self failed: %m\n", pgm_name);
+        exit(EXIT_FAILURE);
+    }
+
+    printf("%s: signal was %sreceived.\n", pgm_name, (sigusr1_received) ? "" : "not ");
+
+    printf("%s: Exit.\n", pgm_name);
+
     exit(EXIT_SUCCESS);
 }
