@@ -2,14 +2,14 @@
 
 ## Table of Contents
 
-* [Exercise 20-1](exercise-20-1)
-  * [Exercise 20-1 Without Sleeping](exercise-20-1-without-sleeping)
-  * [Exercise 20-1 With Sleeping](exercise-20-1-with-sleeping)
-* [Exercise 20-2](exercise-20-2)
-* [Exercise 20-3](exercise-20-3)
-  * [Exercise 20-3 with SA_NODEFER](test-sa-nodefer)
-  * [Exercise 20-3 with SA_RESETHAND](test-sa-resethand)
-* [Exercise 20-4](exercise-20-4)
+* [Exercise 20-1](#exercise-20-1)
+  * [Exercise 20-1 Without Sleeping](#exercise-20-1-without-sleeping)
+  * [Exercise 20-1 With Sleeping](#exercise-20-1-with-sleeping)
+* [Exercise 20-2](#exercise-20-2)
+* [Exercise 20-3](#exercise-20-3)
+  * [Exercise 20-3 with SA_NODEFER](#test-sa-nodefer)
+  * [Exercise 20-3 with SA_RESETHAND](#test-sa-resethand)
+* [Exercise 20-4](#exercise-20-4)
 
 ## Exercise 20-1
 
