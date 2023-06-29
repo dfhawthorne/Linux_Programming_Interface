@@ -63,8 +63,8 @@ int my_siginterrupt(int sig, int flag) {
  * Signal handler
  * -------------------------------------------------------------------------- */
 
-static int sigint_received = 0;
-static int sigusr1_received = 0;
+volatile sig_atomic_t sigint_received = 0;
+volatile sig_atomic_t sigusr1_received = 0;
 
 static void signal_handler(int signal) {
     switch (signal) {
