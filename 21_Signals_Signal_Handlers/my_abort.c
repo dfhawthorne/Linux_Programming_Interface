@@ -27,6 +27,7 @@
 
 #define _GNU_SOURCE
 #include <fcntl.h>
+#include <getopt.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -73,9 +74,67 @@ void sig_handler(int sig) {
     write(fd,"Signal caught\n",15);
     close(fd);
 }
+/* --------------------------------------------------------------------------
+ * Main routine
+ * -------------------------------------------------------------------------- */
 
-int main(int argc, char *argv[]) {
-    fd = open("test.log",O_CREAT|O_WRONLY|O_TRUNC,S_IRWXU|S_IRWXG);
+int main(int argc, char* argv[]) {
+    char *log_file_name         = NULL;
+
+    /* Static variables used to parse passed arguments */
+
+    static int show_help        = 0;
+    static int verbose          = 0;
+    static int use_real_abort   = 0;
+    static int log_file_found   = 0;
+    static int nodefer          = 0;
+
+    static struct option long_options[] = {
+        {"help",           no_argument,       &show_help,        1 },
+        {"verbose",        no_argument,       &verbose,          1 },
+        {"use-real-abort", no_argument,       &use_real_abort,   1 },
+        {"log-file",       required_argument, &log_file_found,   1 },
+        {0,                0,                 0,                 0 }
+    };
+
+    int option_index = 0;
+    while (1) {
+        int c = getopt_long_only(argc, argv, "", long_options, &option_index);
+        if (c == -1) break;
+        if (c != 0) {
+            fprintf(stderr, "Argument parsing failed.\n");
+            exit(EXIT_FAILURE);
+        }
+        if (verbose)
+            fprintf(stderr,
+                "c=%d; option_index=%d; optarg=%s\n",
+                c,
+                option_index,
+                optarg);
+        switch (option_index) {
+            case 0: /* --help */
+            case 1: /* --verbose */
+            case 2: /* --use-real-abort */
+                break;
+            case 3: /* --log-file=<i> */
+                if (optarg == NULL) {
+                    fprintf(stderr, "No argument supplied for --log-file\n");
+                    exit(EXIT_FAILURE);
+                }
+                log_file_name = optarg;
+                break;
+            default:
+                fprintf(stderr, "Invalid arg found %d\n", option_index);
+                break;
+        }
+    }
+
+    if (!log_file_found) {
+        fprintf(stderr, "No log file specified.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    fd = open(log_file_name,O_CREAT|O_WRONLY|O_TRUNC,S_IRWXU|S_IRWXG);
     if (fd == -1) {
         fprintf(stderr, "Unable to create 'test.log': %m\n");
         exit(EXIT_FAILURE);
@@ -91,6 +150,15 @@ int main(int argc, char *argv[]) {
     }
     write(fd,"signal handler installed for SIGABRT.\n",39);
 
-    my_abort();
+    if (use_real_abort) {
+        write(fd,"before call to abort()\n",24);
+        abort();
+        write(fd,"after call to abort()\n",23);
+    } else {
+        write(fd,"before call to my_abort()\n",27);
+        my_abort();
+        write(fd,"after call to my_abort()\n",26);
+    }
+    close(fd);
     exit(EXIT_SUCCESS);
 }
