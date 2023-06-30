@@ -2,9 +2,9 @@
 
 ## Table of Contents
 
-* [Exercise 21-1](exercise-21-1)
-  * [Use abort](use-abort)
-  * [Use my_abort](use-my-abort)
+* [Exercise 21-1](#exercise-21-1)
+  * [Use abort](#use-abort)
+  * [Use my_abort](#use-my-abort)
 
 ## Exercise 21-1
 
