@@ -4,13 +4,19 @@
  * handler for and blocked SIGCONT is later resumed as a consequence of
  * receiving a SIGCONT, then the handler is invoked only when SIGCONT is
  * unblocked. 
+ * 
+ * Note: signal masking and unmasking is done at the process not through the
+ *       signal handler invocation.
  * -------------------------------------------------------------------------- */
 
 #define TRUE 1
 #define FALSE 0
 #define DATE_BUFFER_SIZE 20
+#define MSG_BUFFER_SIZE 128
+
 #define _GNU_SOURCE
 #define _POSIX_C_SOURCE
+
 #include <fcntl.h>
 #include <getopt.h>
 #include <signal.h>
@@ -35,11 +41,16 @@ static int pgm_name_len = 0;
  * -------------------------------------------------------------------------- */
 
 void sig_handler(int sig) {
+    const char status_msg[] = ": Signal caught\n";
     time_t sig_now;
     struct tm sig_now_tm;
-    char sig_time_str[DATE_BUFFER_SIZE];
+    char sig_time_str[DATE_BUFFER_SIZE],
+         msg_buffer[MSG_BUFFER_SIZE+1];
+    size_t msg_len = 0;
     
-    write(log_fd, pgm_name_str, pgm_name_len);
+    *msg_buffer = '\0';
+    if (pgm_name_len < MSG_BUFFER_SIZE) 
+        strncat(msg_buffer, pgm_name_str, pgm_name_len);
     time(&sig_now);
     localtime_r(&sig_now, &sig_now_tm);
     size_t num_bytes = strftime(
@@ -47,11 +58,15 @@ void sig_handler(int sig) {
         DATE_BUFFER_SIZE,
         "%F %T",
         &sig_now_tm);
-    if (num_bytes > 0) {
-        write(log_fd, " ", 1);
-        write(log_fd, sig_time_str, num_bytes);
+    if (num_bytes > 0 && strlen(msg_buffer) + num_bytes + 1 < MSG_BUFFER_SIZE) {
+        strcat(msg_buffer, " ");
+        strncat(msg_buffer, sig_time_str, num_bytes);
     }
-    write(log_fd, ": Signal caught\n", 16);
+    if (strlen(msg_buffer) + strlen(status_msg) < MSG_BUFFER_SIZE)
+        strcat(msg_buffer, status_msg);
+    msg_len = strlen(msg_buffer);
+    if (msg_len > 0)
+        write(log_fd, msg_buffer, msg_len);
 }
 
 /* --------------------------------------------------------------------------
@@ -165,6 +180,22 @@ int main(int argc, char* argv[]) {
             pgm_name_str,
             log_file_name);
 
+    /* Log status messages */
+
+    const char
+        msg_sig_blocked[]     = ": Signal blocked\n",
+        msg_sig_hndlr_added[] = ": Signal handler added\n",
+        msg_idle_started[]    = ": Idling started\n",
+        msg_idle_ended[]      = ": Idling ended\n",
+        msg_sig_unblocked[]   = ": Signal unblocked\n";
+    char msg_buffer[MSG_BUFFER_SIZE];
+    int  msg_len = 0;
+
+    time_t now;
+    struct tm now_tm;
+    char current_time_str[DATE_BUFFER_SIZE];
+    size_t num_bytes = 0;
+
     /* Block handling of SIGCONT interrupts */
 
     sigset_t block_set, prev_mask;
@@ -188,6 +219,29 @@ int main(int argc, char* argv[]) {
                 pgm_name_str);
             exit(EXIT_FAILURE);
         }
+
+        /* Display log message about blocking of signals */
+
+        time(&now);
+        localtime_r(&now, &now_tm);
+        num_bytes = strftime(
+            current_time_str,
+            DATE_BUFFER_SIZE,
+            "%F %T",
+            &now_tm);
+        
+        *msg_buffer = '\0';
+        if (pgm_name_len < MSG_BUFFER_SIZE)
+            strncat(msg_buffer, pgm_name_str, pgm_name_len);
+        if (num_bytes > 0 && strlen(msg_buffer) + num_bytes + 1 < MSG_BUFFER_SIZE) {
+            strcat(msg_buffer, " ");
+            strncat(msg_buffer, current_time_str, num_bytes);
+        }
+        if (strlen(msg_buffer) + strlen(msg_sig_blocked) < MSG_BUFFER_SIZE)
+            strcat(msg_buffer, msg_sig_blocked);
+        msg_len = strlen(msg_buffer);
+        if (msg_len > 0)
+            write(log_fd, msg_buffer, msg_len);
     } else {
         if (verbose)
             fprintf(stderr,
@@ -212,36 +266,7 @@ int main(int argc, char* argv[]) {
             "%s: Signal handler added for SIGCONT.\n",
             pgm_name_str);
 
-    /* Display log message before idling */
-
-    time_t now;
-    struct tm now_tm;
-    char current_time_str[DATE_BUFFER_SIZE];
-
-    time(&now);
-    localtime_r(&now, &now_tm);
-    size_t num_bytes = strftime(
-        current_time_str,
-        DATE_BUFFER_SIZE,
-        "%F %T",
-        &now_tm);
-    
-    write(log_fd, pgm_name_str, pgm_name_len);
-    if (num_bytes > 0) {
-        write(log_fd, " ", 1);
-        write(log_fd, current_time_str, num_bytes);
-    }
-    write(log_fd, ": Signal handler added - idling started\n", 40);
-    if (verbose)
-        fprintf(stderr,
-            "%s: Started idling for %ld seconds.\n",
-            pgm_name_str,
-            idle_for);
-    for (long i = 0; i < idle_for; i++) {
-        sleep(1);
-    }
-
-    /* Idling done */
+    /* Display log message about adding signal handler */
 
     time(&now);
     localtime_r(&now, &now_tm);
@@ -251,12 +276,74 @@ int main(int argc, char* argv[]) {
         "%F %T",
         &now_tm);
     
-    write(log_fd, pgm_name_str, pgm_name_len);
-    if (num_bytes > 0) {
-        write(log_fd, " ", 1);
-        write(log_fd, current_time_str, num_bytes);
+    *msg_buffer = '\0';
+    if (pgm_name_len < MSG_BUFFER_SIZE)
+        strncat(msg_buffer, pgm_name_str, pgm_name_len);
+    if (num_bytes > 0 && strlen(msg_buffer) + num_bytes + 1 < MSG_BUFFER_SIZE) {
+        strcat(msg_buffer, " ");
+        strncat(msg_buffer, current_time_str, num_bytes);
     }
-    write(log_fd, ": Idling ended\n", 15);
+    if (strlen(msg_buffer) + strlen(msg_sig_hndlr_added) < MSG_BUFFER_SIZE)
+        strcat(msg_buffer, msg_sig_hndlr_added);
+    msg_len = strlen(msg_buffer);
+    if (msg_len > 0)
+        write(log_fd, msg_buffer, msg_len);
+
+    /* Display log message about idling starting */
+
+    time(&now);
+    localtime_r(&now, &now_tm);
+    num_bytes = strftime(
+        current_time_str,
+        DATE_BUFFER_SIZE,
+        "%F %T",
+        &now_tm);
+    
+    *msg_buffer = '\0';
+    if (pgm_name_len < MSG_BUFFER_SIZE)
+        strncat(msg_buffer, pgm_name_str, pgm_name_len);
+    if (num_bytes > 0 && strlen(msg_buffer) + num_bytes + 1 < MSG_BUFFER_SIZE) {
+        strcat(msg_buffer, " ");
+        strncat(msg_buffer, current_time_str, num_bytes);
+    }
+    if (strlen(msg_buffer) + strlen(msg_idle_started) < MSG_BUFFER_SIZE)
+        strcat(msg_buffer, msg_idle_started);
+    msg_len = strlen(msg_buffer);
+    if (msg_len > 0)
+        write(log_fd, msg_buffer, msg_len);
+
+    if (verbose)
+        fprintf(stderr,
+            "%s: Started idling for %ld seconds.\n",
+            pgm_name_str,
+            idle_for);
+    for (long i = 0; i < idle_for; i++) {
+        sleep(1);
+    }
+
+    /* Display log message about idling ending */
+
+    time(&now);
+    localtime_r(&now, &now_tm);
+    num_bytes = strftime(
+        current_time_str,
+        DATE_BUFFER_SIZE,
+        "%F %T",
+        &now_tm);
+    
+    *msg_buffer = '\0';
+    if (pgm_name_len < MSG_BUFFER_SIZE)
+        strncat(msg_buffer, pgm_name_str, pgm_name_len);
+    if (num_bytes > 0 && strlen(msg_buffer) + num_bytes + 1 < MSG_BUFFER_SIZE) {
+        strcat(msg_buffer, " ");
+        strncat(msg_buffer, current_time_str, num_bytes);
+    }
+    if (strlen(msg_buffer) + strlen(msg_idle_ended) < MSG_BUFFER_SIZE)
+        strcat(msg_buffer, msg_idle_ended);
+    msg_len = strlen(msg_buffer);
+    if (msg_len > 0)
+        write(log_fd, msg_buffer, msg_len);
+
     if (verbose)
         fprintf(stderr,
             "%s: Idling ended after %ld seconds.\n",
@@ -270,6 +357,31 @@ int main(int argc, char* argv[]) {
             fprintf(stderr,
                 "%s: Enable SIGCONT interrupts to be handled.\n",
                 pgm_name_str);
+
+        /* Display log message about unblocking of signals */
+
+        time(&now);
+        localtime_r(&now, &now_tm);
+        num_bytes = strftime(
+            current_time_str,
+            DATE_BUFFER_SIZE,
+            "%F %T",
+            &now_tm);
+        
+        *msg_buffer = '\0';
+        if (pgm_name_len < MSG_BUFFER_SIZE)
+            strncat(msg_buffer, pgm_name_str, pgm_name_len);
+        if (num_bytes > 0 && strlen(msg_buffer) + num_bytes + 1 < MSG_BUFFER_SIZE) {
+            strcat(msg_buffer, " ");
+            strncat(msg_buffer, current_time_str, num_bytes);
+        }
+        if (strlen(msg_buffer) + strlen(msg_sig_unblocked) < MSG_BUFFER_SIZE)
+            strcat(msg_buffer, msg_sig_unblocked);
+        msg_len = strlen(msg_buffer);
+        if (msg_len > 0)
+            write(log_fd, msg_buffer, msg_len);
+
+        /* Unblock SIGCONT signal */
 
         if (sigprocmask(SIG_UNBLOCK, &block_set, &prev_mask) == -1) {
             fprintf(stderr,

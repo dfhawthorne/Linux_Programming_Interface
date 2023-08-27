@@ -2,6 +2,8 @@
 
 ## Table of Contents
 
+* [Exercise 22-1](exercise-22-1)
+
 ## Exercise 22-1
 
 To build the solution, run:
@@ -16,9 +18,10 @@ To experiment without masking, run:
 
 Sample output is:
 ```
-./Ex_22_1 2023-08-27 00:58:20: Signal handler added - idling started
-./Ex_22_1 2023-08-27 00:58:25: Signal caught
-./Ex_22_1 2023-08-27 01:00:01: Idling ended
+./Ex_22_1 2023-08-27 12:33:33: Signal handler added
+./Ex_22_1 2023-08-27 12:33:33: Idling started
+./Ex_22_1 2023-08-27 12:33:38: Signal caught
+./Ex_22_1 2023-08-27 12:35:14: Idling ended
 ```
 
 To experiment with masking, run:
@@ -28,9 +31,12 @@ To experiment with masking, run:
 
 Sample output is:
 ```
-./Ex_22_1 2023-08-27 00:13:32: Signal handler added - idling started
-./Ex_22_1 2023-08-27 00:15:13: Idling ended
-./Ex_22_1 2023-08-27 00:15:13: Signal caught
+./Ex_22_1 2023-08-27 12:35:15: Signal blocked
+./Ex_22_1 2023-08-27 12:35:15: Signal handler added
+./Ex_22_1 2023-08-27 12:35:15: Idling started
+./Ex_22_1 2023-08-27 12:36:56: Idling ended
+./Ex_22_1 2023-08-27 12:36:56: Signal unblocked
+./Ex_22_1 2023-08-27 12:36:56: Signal caught
 ```
 
 ### Log Files
