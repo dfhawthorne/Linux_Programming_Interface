@@ -147,7 +147,7 @@ int main(int argc, char* argv[]) {
 
     if (show_help) {
         fprintf(stderr,
-            "%s [--help] [--verbose] [--idle-for=n] --log-file=f\n\
+            "%s [--help] [--verbose] [--idle-for=n] [--mask] --log-file=f\n\
 \t--help\n\t\tshow this help message and exit.\n\
 \t--verbose\n\t\tshow verbose messages\n\
 \t--idle-for=n\n\t\tidle program for <n> seconds.\n\
