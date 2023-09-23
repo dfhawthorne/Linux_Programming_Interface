@@ -3,6 +3,7 @@
 ## Table of Contents
 
 * [Exercise 22-1](exercise-22-1)
+* [Exercise 22-2](exercise-22-2)
 
 ## Exercise 22-1
 
@@ -44,3 +45,14 @@ Sample output is:
 * `logs/test1/Ex_22_1_main.log` contains the above output.
 * `logs/test1/Ex_22_1_stdout.log` contains any output sent to STDOUT from Ex_22_1.
 * `logs/test1/Ex_22_1.log` contains any error messages, and verbose messages if the `--verbose` option is chosen.
+
+## Exercise 22-2
+
+To build and test the solution, run:
+```bash
+make test_2
+```
+
+Sample output can be found in the file [`Ex_22_2_sample_solution`](Ex_22_2_sample_solution).
+
+The answer to the question is that real time signals are presented first.

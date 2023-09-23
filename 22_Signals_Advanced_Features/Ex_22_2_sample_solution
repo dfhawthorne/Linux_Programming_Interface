@@ -1,0 +1,119 @@
+./Ex_22_2 2023-09-23 19:47:41: All signals blocked
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for Hangup 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for Interrupt 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for Quit 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for Illegal instruction 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for Trace/breakpoint trap 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for Aborted 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for Bus error 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for Floating point exception 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for User defined signal 1 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for User defined signal 2 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for Broken pipe 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for Alarm clock 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for Terminated 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for Stack fault 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for Child exited 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for Continued 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for Stopped 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for Stopped (tty input) 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for Stopped (tty output) 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for Urgent I/O condition 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for CPU time limit exceeded 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for File size limit exceeded 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for Profiling timer expired 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for Window changed 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for I/O possible 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for Power failure 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for Bad system call 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for 34 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for 35 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for 36 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for 37 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for 38 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for 39 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for 40 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for 41 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for 42 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for 43 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for 44 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for 45 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for 46 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for 47 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for 48 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for 49 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for 50 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for 51 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for 52 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for 53 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for 54 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for 55 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for 56 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for 57 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for 58 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for 59 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for 60 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for 61 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for 62 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for 63 
+./Ex_22_2 2023-09-23 19:47:41: Signal handler added for 64 
+./Ex_22_2 2023-09-23 19:47:41: Idling started
+./Ex_22_2 2023-09-23 19:49:21: Idling ended
+./Ex_22_2 2023-09-23 19:49:21: All signal unblocked
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (64)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (63)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (62)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (61)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (60)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (59)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (58)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (57)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (56)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (55)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (54)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (53)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (52)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (51)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (50)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (49)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (48)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (47)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (46)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (45)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (44)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (43)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (42)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (41)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (40)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (39)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (38)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (37)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (36)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (35)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (34)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (Power failure)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (I/O possible)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (Window changed)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (Profiling timer expired)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (File size limit exceeded)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (CPU time limit exceeded)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (Urgent I/O condition)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (Stopped (tty output))
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (Stopped (tty input))
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (Stopped)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (Child exited)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (Stack fault)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (Terminated)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (Alarm clock)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (Broken pipe)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (User defined signal 2)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (User defined signal 1)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (Aborted)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (Quit)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (Interrupt)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (Hangup)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (Bad system call)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (Floating point exception)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (Bus error)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (Trace/breakpoint trap)
+./Ex_22_2 2023-09-23 19:49:21: Signal caught (Illegal instruction)
