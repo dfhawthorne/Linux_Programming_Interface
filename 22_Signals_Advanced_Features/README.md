@@ -75,8 +75,8 @@ make test_3
 Sample output is:
 
 ```text
-test using sigsuspend completed	1000000	3.98	1.14	2.83
-test using sigwaitinfo completed	1000000	0.68	0.35	0.32
+test using sigsuspend completed  1000000 3.98 1.14 2.83
+test using sigwaitinfo completed 1000000 0.68 0.35 0.32
 ```
 
 Using `sigwaitinfo()` results in an 83% reduction in run time.
