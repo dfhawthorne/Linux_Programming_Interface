@@ -90,22 +90,21 @@ typedef void (*sighandler_t)(int);
 
 sighandler_t my_sigset(int sig, sighandler_t disp) {
     errno = ENOSYS;
-    return (sighandler_t)-1;
+    return SIG_ERR;
 }
 
+#define SIG_HOLD ((sighandler_t) 2)	/* Add signal to hold mask.  */
+
 int my_sighold(int sig) {
-    errno = ENOSYS;
-    return -1;
+    return (my_sigset(sig, SIG_HOLD) == SIG_ERR) ? -1 : 0;
 }
 
 int my_sigrelse(int sig) {
-    errno = ENOSYS;
-    return -1;
+    return (my_sigset(sig, SIG_DFL) == SIG_ERR) ? -1 : 0;
 }
 
 int my_sigignore(int sig) {
-    errno = ENOSYS;
-    return -1;
+    return (my_sigset(sig, SIG_IGN) == SIG_ERR) ? -1 : 0;
 }
 
 /* --------------------------------------------------------------------------
