@@ -27,8 +27,11 @@ test_3 test_3_v: sig_speed_sigsuspend
 	./Ex_22_3.sh ${verbose_mode} --log-dir=logs/Ex_22_3
 
 test_4 test_4_v: Ex_22_4
-	./Ex_22_4 ${verbose_mode}
-
+	@./Ex_22_4 ${verbose_mode} & echo $$! >.pidfile
+	@if [ -f .pidfile ]; then \
+		pkill --pidfile .pidfile --signal USR1; \
+		rm -f .pidfile; \
+		fi
 # ------------------------------------------------------------------------------
 # Compile programs
 # ------------------------------------------------------------------------------

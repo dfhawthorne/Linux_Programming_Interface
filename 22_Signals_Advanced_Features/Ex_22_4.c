@@ -4,9 +4,12 @@
  * sigignore(), and sigpause() using the POSIX signal API.
  * ========================================================================== */
 
+#define _POSIX_C_SOURCE 200809L
+
 #include <error.h>
 #include <errno.h>
 #include <signal.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 /* -------------------------------------------------------------------------- 
@@ -87,13 +90,35 @@ ERRORS
 /* My implementation of sigset() */
 
 typedef void (*sighandler_t)(int);
+#define SIG_HOLD ((sighandler_t) 2)	/* Add signal to hold mask.  */
 
 sighandler_t my_sigset(int sig, sighandler_t disp) {
+    static struct sigaction act;
+
+    switch ((long int)disp) {
+
+        case (long int)SIG_DFL:
+            errno = ENOSYS;
+            return SIG_ERR;
+
+        case (long int)SIG_IGN:
+            errno = ENOSYS;
+            return SIG_ERR;
+
+        case (long int)SIG_HOLD:
+            errno = ENOSYS;
+            return SIG_ERR;
+        
+        default:
+            act.sa_handler = disp;
+            act.sa_flags   = 0;
+            sigemptyset(&act.sa_mask);
+            return (sigaction(sig, &act, NULL) == 0) ? disp : SIG_ERR;
+    }
+
     errno = ENOSYS;
     return SIG_ERR;
 }
-
-#define SIG_HOLD ((sighandler_t) 2)	/* Add signal to hold mask.  */
 
 int my_sighold(int sig) {
     return (my_sigset(sig, SIG_HOLD) == SIG_ERR) ? -1 : 0;
@@ -130,8 +155,46 @@ RETURN VALUE
  * -------------------------------------------------------------------------- */
 
 int my_sigpause(int sig) {
-    errno = ENOSYS;
-    return -1;
+    unsigned int lineno;
+    int errnum;
+    static struct timespec time_out;
+    time_out.tv_sec = 30;
+    static sigset_t sig_set;
+
+    lineno = __LINE__ + 1;
+    if (sigemptyset(&sig_set) == -1) {
+        errnum = errno;
+        error_at_line(0, errnum, __FILE__, lineno,
+         "my_sigpause failed while doing sigemptyset()");
+        errno = errnum;
+        return -1;
+    }
+
+    lineno = __LINE__ + 1;
+    if (sigaddset(&sig_set, sig) == -1) {
+        errnum = errno;
+        error_at_line(0, errnum, __FILE__, lineno,
+         "my_sigpause failed while doing sigaddset()");
+        errno = errnum;
+        return -1;
+    }
+
+    lineno = __LINE__ + 1;
+    int captured_sig = sigtimedwait(&sig_set, NULL, &time_out);
+
+    if (captured_sig == -1) {
+        return -1;
+    } 
+    if (captured_sig == sig) {
+        errno = EINTR;
+        return -1;
+    } else {
+        errnum = EINVAL;
+        error_at_line(0, errnum, __FILE__, lineno,
+         "incorrect signal (%d) returned - expected %d", captured_sig, sig);
+        errno = errnum;
+        return -1;
+    }
 }
 
 /* ==========================================================================
@@ -146,13 +209,9 @@ void test_sigset() {
     const unsigned int lineno = __LINE__ + 1;
     result = my_sigset(SIGUSR1, &sig_handler);
     if ((long int)result == -1L) {
-        error_at_line(
-            0,
-            errno,
-            __FILE__,
-            lineno,
-            "my_sigset failed"
-            );
+        error_at_line(0, errno, __FILE__, lineno, "my_sigset failed");
+    } else {
+        printf("my_sigset passed\n");
     }
 }
 
@@ -160,13 +219,9 @@ void test_sighold() {
     const unsigned int lineno = __LINE__ + 1;
     int errnum = my_sighold(SIGUSR1);
     if (errnum == -1) {
-        error_at_line(
-            0,
-            errno,
-            __FILE__,
-            lineno,
-            "my_sighold failed"
-            );
+        error_at_line(0, errno, __FILE__, lineno, "my_sighold failed");
+    } else {
+        printf("my_sighold passed\n");
     }
 }
 
@@ -174,13 +229,9 @@ void test_sigrelse() {
     const unsigned int lineno = __LINE__ + 1;
     int errnum = my_sigrelse(SIGUSR1);
     if (errnum == -1) {
-        error_at_line(
-            0,
-            errno,
-            __FILE__,
-            lineno,
-            "my_sigrelse failed"
-            );
+        error_at_line(0, errno, __FILE__, lineno, "my_sigrelse failed");
+    } else {
+        printf("my_sigrelse passed\n");
     }
 }
 
@@ -188,13 +239,9 @@ void test_sigignore() {
     const unsigned int lineno = __LINE__ + 1;
     int errnum = my_sigignore(SIGUSR1);
     if (errnum == -1) {
-        error_at_line(
-            0,
-            errno,
-            __FILE__,
-            lineno,
-            "my_sigignore failed"
-            );
+        error_at_line(0, errno, __FILE__, lineno, "my_sigignore failed");
+    } else {
+        printf("my_sigignore passed\n");
     }
 }
 
@@ -202,13 +249,13 @@ void test_sigpause() {
     const unsigned int lineno = __LINE__ + 1;
     int errnum = my_sigpause(SIGUSR1);
     if (errnum == -1) {
-        error_at_line(
-            0,
-            errno,
-            __FILE__,
-            lineno,
-            "my_sigpause failed"
-            );
+        if (errno != EINTR) {
+            error_at_line(0, errno, __FILE__, lineno, "my_sigpause failed");
+        } else {
+            printf("my_sigpause passed\n");
+        }
+    } else {
+        error_at_line(0, EINVAL, __FILE__, lineno, "my_sigpause failed");
     }
 }
 
