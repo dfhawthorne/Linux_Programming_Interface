@@ -2,9 +2,10 @@
 
 ## Table of Contents
 
-* [Exercise 22-1](exercise-22-1)
-* [Exercise 22-2](exercise-22-2)
-* [Exercise 22-3](exercise-22-3)
+* [Exercise 22-1](#exercise-22-1)
+* [Exercise 22-2](#exercise-22-2)
+* [Exercise 22-3](#exercise-22-3)
+* [Exercise 22-4](#exercise-22-4)
 
 ## Exercise 22-1
 
@@ -80,3 +81,29 @@ test using sigwaitinfo completed 1000000 0.68 0.35 0.32
 ```
 
 Using `sigwaitinfo()` results in an 83% reduction in run time.
+
+## Exercise 22-4
+
+To build and test the solution, run:
+
+```bash
+make test_4
+```
+
+Sample output is:
+
+```text
+gcc -o Ex_22_4 Ex_22_4.c
+./Ex_22_4.sh  --log-dir=logs/Ex_22_4
+```
+
+The contents of the stdout log is:
+
+```text
+my_sigset passed
+my_sighold passed
+my_sigignore passed
+my_sigrelse passed
+my_sigpause passed
+*** All tests done ***
+```

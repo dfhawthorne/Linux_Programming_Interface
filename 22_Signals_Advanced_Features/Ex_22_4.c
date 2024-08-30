@@ -93,35 +93,72 @@ typedef void (*sighandler_t)(int);
 #define SIG_HOLD ((sighandler_t) 2)	/* Add signal to hold mask.  */
 
 sighandler_t my_sigset(int sig, sighandler_t disp) {
-    static struct sigaction act;
+    static struct sigaction act, prev_act;
 
-    switch ((long int)disp) {
+    unsigned int lineno = __LINE__ + 1;
+    int errnum;
 
-        case (long int)SIG_DFL:
-            errno = ENOSYS;
-            return SIG_ERR;
+    act.sa_flags   = 0;
 
-        case (long int)SIG_IGN:
-            errno = ENOSYS;
-            return SIG_ERR;
-
-        case (long int)SIG_HOLD:
-            errno = ENOSYS;
-            return SIG_ERR;
-        
-        default:
-            act.sa_handler = disp;
-            act.sa_flags   = 0;
-            sigemptyset(&act.sa_mask);
-            return (sigaction(sig, &act, NULL) == 0) ? disp : SIG_ERR;
+    if (sigemptyset(&act.sa_mask) == -1) {
+        errnum = errno;
+        error_at_line(0, errnum, __FILE__, lineno,
+         "my_sigset failed while doing sigemptyset()");
+        errno = errnum;
+        return SIG_ERR;
     }
 
-    errno = ENOSYS;
-    return SIG_ERR;
+    lineno = __LINE__ + 1;
+    if (sigaddset(&act.sa_mask, sig) == -1) {
+        errnum = errno;
+        error_at_line(0, errnum, __FILE__, lineno,
+         "my_sigset failed while doing sigaddset()");
+        errno = errnum;
+        return SIG_ERR;
+    }
+
+    act.sa_handler = disp;
+
+    if (sigaction(sig, &act, &prev_act) != 0) {
+        return SIG_ERR;
+    } else {
+        return prev_act.sa_handler;
+    }
 }
 
 int my_sighold(int sig) {
-    return (my_sigset(sig, SIG_HOLD) == SIG_ERR) ? -1 : 0;
+    unsigned int lineno;
+    int errnum;
+    sigset_t blockedMask;
+
+    lineno = __LINE__ + 1;
+    if (sigemptyset(&blockedMask) == -1) {
+        errnum = errno;
+        error_at_line(0, errno, __FILE__, lineno, 
+            "my_sighold failed while calling sigemptyset()");
+        errno = errnum;
+        return -1;
+    }
+
+    lineno = __LINE__ + 1;
+    if (sigaddset(&blockedMask, sig) == -1) {
+        errnum = errno;
+        error_at_line(EXIT_FAILURE, errno, __FILE__, lineno, 
+            "my_sighold failed while calling sigaddset()");
+        errno = errnum;
+        return -1;
+    }
+
+    lineno = __LINE__ + 1;
+    if (sigprocmask(SIG_BLOCK, &blockedMask, NULL) == -1) {
+        errnum = errno;
+        error_at_line(EXIT_FAILURE, errno, __FILE__, lineno, 
+            "my_sighold failed while calling sigprocmask()");
+        errno = errnum;
+        return -1;
+    }
+    errno = 0;
+    return 0;
 }
 
 int my_sigrelse(int sig) {
@@ -202,16 +239,25 @@ int my_sigpause(int sig) {
  * ========================================================================== */
 
 void sig_handler(int sig) {
+    printf("Signal (%d) caught by handler\n", sig);
+    fflush(stdout);
 }
 
 void test_sigset() {
     sighandler_t result;
-    const unsigned int lineno = __LINE__ + 1;
+    unsigned int lineno = __LINE__ + 1;
     result = my_sigset(SIGUSR1, &sig_handler);
-    if ((long int)result == -1L) {
+    if (result == SIG_ERR) {
         error_at_line(0, errno, __FILE__, lineno, "my_sigset failed");
     } else {
-        printf("my_sigset passed\n");
+        sighandler_t restore_result;
+        lineno = __LINE__ + 1;
+        restore_result = my_sigset(SIGUSR1, result);
+        if (restore_result == SIG_ERR) {
+            error_at_line(0, errno, __FILE__, lineno, "my_sigset failed");
+        } else {
+            printf("my_sigset passed\n");
+        }
     }
 }
 
@@ -246,8 +292,30 @@ void test_sigignore() {
 }
 
 void test_sigpause() {
-    const unsigned int lineno = __LINE__ + 1;
-    int errnum = my_sigpause(SIGUSR1);
+    unsigned int lineno;
+    int errnum;
+    sigset_t blockedMask;
+
+    lineno = __LINE__ + 1;
+    if (sigemptyset(&blockedMask) == -1) {
+        error_at_line(EXIT_FAILURE, errno, __FILE__, lineno, 
+            "my_sigpause failed while calling sigemptyset()");
+    }
+
+    lineno = __LINE__ + 1;
+    if (sigaddset(&blockedMask, SIGUSR2) == -1) {
+        error_at_line(EXIT_FAILURE, errno, __FILE__, lineno, 
+            "my_sigpause failed while calling sigaddset()");
+    }
+
+    lineno = __LINE__ + 1;
+    if (sigprocmask(SIG_SETMASK, &blockedMask, NULL) == -1) {
+        error_at_line(EXIT_FAILURE, errno, __FILE__, lineno, 
+            "my_sigpause failed while calling sigprocmask()");
+    }
+    
+    lineno = __LINE__ + 1;
+    errnum = my_sigpause(SIGUSR2);
     if (errnum == -1) {
         if (errno != EINTR) {
             error_at_line(0, errno, __FILE__, lineno, "my_sigpause failed");
@@ -262,7 +330,10 @@ void test_sigpause() {
 int main(int argc, char *argv[]) {
     test_sigset();
     test_sighold();
-    test_sigrelse();
     test_sigignore();
+    test_sigrelse();
     test_sigpause();
+    printf("*** All tests done ***\n");
+    fflush(stdout);
+    exit(EXIT_SUCCESS);
 }
