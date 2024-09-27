@@ -18,16 +18,30 @@ pushd "${pgm_dir}" >/dev/null
 
 for pgm in t_nanosleep Ex_23_2
 do
-    if [[ -x t_nanosleep ]]
+    if [[ ! -x "${pgm}" ]]
     then
-        printf "Using %s...\n" "${pgm}"
-        "./${pgm}" 60 0 &
-        pid=$!
-        while true
-        do
-            kill -INT ${pid} 2>/dev/null || break
-        done
-    else
         printf "Program %s not found\n" "${pgm}"
+        continue
     fi
+
+    log_dir="logs/Ex_23_2/${pgm}"
+    [[ ! -d "${log_dir}" ]] && mkdir -p "${log_dir}"
+
+    printf "Using %s...\n" "${pgm}"
+    ./${pgm} 60 0 >${log_dir}/out.log 2>${log_dir}/err.log &
+    job_pid=$!
+    
+    # --------------------------------------------------------------------------
+    # The Linux command, kill, is used instead of the shell builtin in order to
+    # slow down the loop enough to allow the background job to complete.
+    # --------------------------------------------------------------------------
+
+    while true
+    do
+        /usr/bin/kill -INT ${job_pid} 2>/dev/null || break
+    done
+    wait
+    tail -n 3 ${log_dir}/out.log
 done
+
+exit 0
