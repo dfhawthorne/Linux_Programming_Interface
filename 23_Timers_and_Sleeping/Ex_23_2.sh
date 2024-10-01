@@ -16,7 +16,7 @@
 pgm_dir=$(dirname $0)
 pushd "${pgm_dir}" >/dev/null
 
-for pgm in t_nanosleep Ex_23_2
+for pgm in t_nanosleep Ex_23_2 t_clock_nanosleep
 do
     if [[ ! -x "${pgm}" ]]
     then

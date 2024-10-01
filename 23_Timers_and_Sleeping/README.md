@@ -19,9 +19,7 @@ Alarm succeeded
 
 The published solution to [Exercise 23-2](https://man7.org/tlpi/code/online/dist/timers/t_clock_nanosleep.c.html) uses `clock_nanosleep()` instead of `nanosleep()`.
 
-I need to submit an erratum.
-
-To run my solution, type:
+To run my solution along with the published solution, type:
 
 ```bash
 make test_2
@@ -30,14 +28,19 @@ make test_2
 The sample output is:
 
 ```text
+./Ex_23_2.sh
 Using t_nanosleep...
-Remaining:  0.001685607
-Slept for: 62.019164 secs
+Remaining:  0.000346101
+Slept for: 61.986514 secs
 Sleep complete
 Using Ex_23_2...
-Remaining:  0.000949108
-Slept for: 62.014362 secs
+Remaining:  0.000576292
+Slept for: 61.888986 secs
+Sleep complete
+Using t_clock_nanosleep...
+Interrupted... Slept: 62.007887 secs... Remaining: 0.000790663... Restarting
+Slept: 62.008789 secs
 Sleep complete
 ```
 
-There is no meaningful difference between the two (2) versions. Both of them overran the set interval by about two (2) seconds.
+There is no meaningful difference between the three (3) versions. All of them overran the set interval by about two (2) seconds.
