@@ -1,12 +1,16 @@
-.PHONY: all test_1 test_2
+.PHONY: all test_1 test_2 test_3
 
-all: test_1 test_2
+all: test_1 test_2 test_3
 
 test_1: Ex_23_1
 	./Ex_23_1
 
 test_2: t_nanosleep Ex_23_2 t_clock_nanosleep
 	./Ex_23_2.sh
+
+test_3: Ex_23_3
+	./Ex_23_3
+	./Ex_23_3 EVP
 
 # ------------------------------------------------------------------------------
 # Compile programs

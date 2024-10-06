@@ -44,3 +44,23 @@ Sleep complete
 ```
 
 There is no meaningful difference between the three (3) versions. All of them overran the set interval by about two (2) seconds.
+
+## Exercise 23-3
+
+To run the test, use the following command:
+
+```bash
+make test_3
+```
+
+The sample output is:
+
+```text
+gcc -o Ex_23_3 Ex_23_3.c 
+./Ex_23_3
+Signal 14 caught
+Signal caught
+./Ex_23_3 EVP
+Signal 14 caught
+Signal caught
+```
