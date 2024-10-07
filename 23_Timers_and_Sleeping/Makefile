@@ -13,7 +13,7 @@ test_3: Ex_23_3
 	./Ex_23_3 EVP
 
 test_4: ptmr_sigev_thread
-	./ptmr_sigev_thread
+	./ptmr_sigev_thread 60
 
 # ------------------------------------------------------------------------------
 # Compile programs

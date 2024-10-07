@@ -30,20 +30,22 @@ The sample output is:
 ```text
 ./Ex_23_2.sh
 Using t_nanosleep...
-Remaining:  0.000346101
-Slept for: 61.986514 secs
+Remaining:  0.000715167
+Slept for: 62.077613 secs
 Sleep complete
 Using Ex_23_2...
-Remaining:  0.000576292
-Slept for: 61.888986 secs
+Remaining: 9437184.000000012
+Slept for: 60.000036 secs
 Sleep complete
 Using t_clock_nanosleep...
-Interrupted... Slept: 62.007887 secs... Remaining: 0.000790663... Restarting
-Slept: 62.008789 secs
+Interrupted... Slept: 62.072626 secs... Remaining: 0.002018094... Restarting
+Slept: 62.074727 secs
 Sleep complete
 ```
 
-There is no meaningful difference between the three (3) versions. All of them overran the set interval by about two (2) seconds.
+There is no meaningful difference between the two (2) versions: t_nanosleep; and t_clock_nanosleep. Both of them overran the set interval by about two (2) seconds.
+
+My solution was close to the set interval.
 
 ## Exercise 23-3
 
