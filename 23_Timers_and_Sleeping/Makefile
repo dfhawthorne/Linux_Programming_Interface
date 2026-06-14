@@ -13,7 +13,11 @@ test_3: Ex_23_3
 	./Ex_23_3 EVP
 
 test_4: ptmr_sigev_thread
-	./ptmr_sigev_thread 60
+	@echo "From LPI (p.503),"
+	@echo "Run './ptmr_sigev_thread 2:5'"
+	@echo "Wait until timer expires a second time."
+	@echo "Press <ctrl-z> to suspend the process"
+	@echo "Wait for a few seconds, then run 'fg'"
 
 # ------------------------------------------------------------------------------
 # Compile programs

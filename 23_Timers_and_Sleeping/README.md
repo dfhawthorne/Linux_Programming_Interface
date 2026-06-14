@@ -66,3 +66,58 @@ Signal caught
 Signal 14 caught
 Signal caught
 ```
+
+## Exercise 23-4
+
+To run the test, use the following command:
+
+```bash
+make test_4
+```
+
+The sample output is:
+
+```text
+gcc -o ptmr_sigev_thread ptmr_sigev_thread.c error_functions.c get_num.c itimerspec_from_str.c curr_time.c
+From LPI (p.503),
+Run './ptmr_sigev_thread 2:5'
+Wait until timer expires a second time.
+Press <ctrl-z> to suspend the process
+Wait for a few seconds, then run 'fg'
+douglas@coogee:23_Timers_and_Sleeping$ ./ptmr_sigev_thread 2:5
+Timer ID: -9223319418302678448 (2:5)
+[04:47:55] Thread notify
+    timer ID=-9223319418302678448
+    timer_getoverrun()=0
+main(): expireCnt = 1
+[04:48:00] Thread notify
+    timer ID=-9223319418302678448
+    timer_getoverrun()=0
+main(): expireCnt = 2
+^Z
+[1]+  Stopped                 ./ptmr_sigev_thread 2:5
+douglas@coogee:23_Timers_and_Sleeping$ fg
+./ptmr_sigev_thread 2:5
+[04:48:51] Thread notify
+    timer ID=-9223319418302678448
+    timer_getoverrun()=9
+main(): expireCnt = 12
+[04:48:55] Thread notify
+    timer ID=-9223319418302678448
+    timer_getoverrun()=0
+main(): expireCnt = 13
+[04:49:00] Thread notify
+    timer ID=-9223319418302678448
+    timer_getoverrun()=0
+main(): expireCnt = 14
+[04:49:05] Thread notify
+    timer ID=-9223319418302678448
+    timer_getoverrun()=0
+main(): expireCnt = 15
+[04:49:10] Thread notify
+    timer ID=-9223319418302678448
+    timer_getoverrun()=0
+main(): expireCnt = 16
+^C
+douglas@coogee:23_Timers_and_Sleeping$ 
+```

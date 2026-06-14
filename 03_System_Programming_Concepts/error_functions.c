@@ -39,8 +39,10 @@ static void
 outputError(Boolean useErr, int err, Boolean flushStdout,
         const char *format, va_list ap)
 {
-#define BUF_SIZE 500
-    char buf[BUF_SIZE], userMsg[BUF_SIZE], errText[BUF_SIZE];
+    #define MAX_USR_TEXT_SIZE 500
+    #define MAX_ERR_TEXT_SIZE 100
+    #define BUF_SIZE (MAX_USR_TEXT_SIZE+MAX_ERR_TEXT_SIZE+100)
+    char buf[BUF_SIZE], userMsg[MAX_USR_TEXT_SIZE], errText[MAX_ERR_TEXT_SIZE];
 
     vsnprintf(userMsg, BUF_SIZE, format, ap);
 

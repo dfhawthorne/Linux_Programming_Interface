@@ -2,6 +2,6 @@ logs
 Ex_23_1
 Ex_23_2
 Ex_23_3
-ptmr_sigev_signal
+ptmr_sigev_thread
 t_nanosleep
 t_clock_nanosleep

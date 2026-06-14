@@ -8,6 +8,11 @@
 * the file COPYING.gpl-v3 for details.                                    *
 \*************************************************************************/
 
+/*************************************************************************
+ * Ex 23-4: Modify ptmr_sigev_thread.c to use sigwaitinfo() instead of a *
+ *          signal handler.                                              *
+ *************************************************************************/
+
 /* ptmr_sigev_thread.c
 
    This program demonstrates the use of threads as the notification mechanism
@@ -29,6 +34,8 @@
    systems, an incomplete user-space implementation of POSIX timers
    was provided in glibc.
 */
+
+#define _POSIX_C_SOURCE 199309L
 #include <signal.h>
 #include <time.h>
 #include <pthread.h>
