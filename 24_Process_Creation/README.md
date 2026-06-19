@@ -37,12 +37,14 @@ Sample output is:
 ```text
 cc -std=c17 -Wall -Wextra -Wpedantic -O2 Ex_2.c -o Ex_2
 ./Ex_2 -v
+Parent: Create semaphore for child to signal parent
 Parent: Check status of FD 0 before vfork()
 Parent: Status of FD 0 before vfork() successful
 Parent: Before vfork()
 Child: Close FD 0
+Child: Signaling parent
 Child: Exiting
-Parent: After vfork()
+Parent: Waiting for child to signal
 Parent: Check status of FD 0 after child closes FD 0
 Parent: Status of FD 0 after vfork() successful
 ```
