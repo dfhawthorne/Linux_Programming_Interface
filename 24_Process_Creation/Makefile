@@ -7,18 +7,25 @@
 UNAME_S := $(shell uname -s)
 CC      ?= gcc
 CSTD    ?= -std=c17
-WARN    ?= -Wall -Wextra -Wpedantic
+WARN    ?= -Wall -Wextra -Wpedantic -Wimplicit-fallthrough
 OPT     ?= -O2
 
 MY_CFLAGS := $(CSTD) $(WARN) $(OPT)
 
 CFLAGS  += $(MY_CFLAGS)
 
+RUN_ARGS :=
+
+ifeq ($(VERBOSE),1)
+RUN_ARGS += -v
+endif
+
+
 # ------------------------------------------------------------------------------
 # All test cases
 # ------------------------------------------------------------------------------
 
-all: test_1 test_2 test_2_v test_3 test_4 test_5
+all: test_1 test_2 test_3 test_4 test_5
 
 test_1:
 	@echo "There are eight processes created:"
@@ -34,13 +41,11 @@ test_1:
 	@echo "       +-> child_3"
 
 test_2: Ex_2
-	./Ex_2
+	./Ex_2 $(RUN_ARGS)
 
-test_2_v: Ex_2
-	./Ex_2 -v
-
-test_3:
-	$(error test_3 is not implemented)
+test_3: Ex_3
+	ulimit -c unlimited
+	./Ex_3 $(RUN_ARGS)
 
 test_4:
     ifeq ("$(strip $(UNAME_S))","Linux")

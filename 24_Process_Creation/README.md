@@ -29,7 +29,7 @@ Parent +-> child_1 +-> child_1_1 -> child_1_1_1
 Run:
 
 ```bash
-make test_2_v
+make test_2 VERBOSE=1
 ```
 
 Sample output is:
@@ -44,4 +44,24 @@ Child: Close FD 0
 Child: Exiting
 Parent: Check status of FD 0 after child closes FD 0
 Parent: Status of FD 0 after vfork() successful
+```
+
+## Exercise 24-3
+
+Run:
+
+```bash
+make test_3 VERBOSE=1
+```
+
+Sample output is:
+
+```text
+cc -std=c17 -Wall -Wextra -Wpedantic -Wimplicit-fallthrough -O2 Ex_3.c -o Ex_3
+ulimit -c unlimited
+./Ex_3 -v
+Parent: Before vfork()
+Child: Get process ID
+Child: Signal QUIT to get a core dump
+Parent: vfork() successful
 ```
