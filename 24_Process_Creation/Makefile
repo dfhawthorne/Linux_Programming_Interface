@@ -56,7 +56,10 @@ test_4:
 	@echo ""
 
 test_5:
-	$(error test_5 is not implemented)
+	./Ex_5
+
+Ex_5: Ex_5.c curr_time.c get_num.c error_functions.c
+	$(CC) $(CFLAGS) $^ -o $@
 
 %: %.c
 	$(CC) $(CFLAGS) $^ -o $@
