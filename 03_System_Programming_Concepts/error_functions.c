@@ -44,14 +44,14 @@ outputError(Boolean useErr, int err, Boolean flushStdout,
     #define BUF_SIZE (MAX_USR_TEXT_SIZE+MAX_ERR_TEXT_SIZE+100)
     char buf[BUF_SIZE], userMsg[MAX_USR_TEXT_SIZE], errText[MAX_ERR_TEXT_SIZE];
 
-    vsnprintf(userMsg, BUF_SIZE, format, ap);
+    vsnprintf(userMsg, MAX_USR_TEXT_SIZE, format, ap);
 
     if (useErr)
-        snprintf(errText, BUF_SIZE, " [%s %s]",
+        snprintf(errText, MAX_ERR_TEXT_SIZE, " [%s %s]",
                 (err > 0 && err <= MAX_ENAME) ?
                 ename[err] : "?UNKNOWN?", strerror(err));
     else
-        snprintf(errText, BUF_SIZE, ":");
+        snprintf(errText, MAX_ERR_TEXT_SIZE, ":");
 
     snprintf(buf, BUF_SIZE, "ERROR%s %s\n", errText, userMsg);
 
