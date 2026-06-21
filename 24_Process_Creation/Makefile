@@ -55,7 +55,7 @@ test_4:
     endif
 	@echo ""
 
-test_5:
+test_5: Ex_5
 	./Ex_5
 
 Ex_5: Ex_5.c curr_time.c get_num.c error_functions.c

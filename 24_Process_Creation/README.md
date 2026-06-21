@@ -65,3 +65,29 @@ Child: Get process ID
 Child: Signal QUIT to get a core dump
 Parent: vfork() successful
 ```
+
+## Exercise 24-4
+
+Not implemented as it requires access to a different flavour of Unix other than Linux.
+
+## Exercise 24-5
+
+Run:
+
+```bash
+make test_5
+```
+
+Sample output is:
+
+```text
+cc -std=c17 -Wall -Wextra -Wpedantic -Wimplicit-fallthrough -O2 Ex_5.c curr_time.c get_num.c error_functions.c -o Ex_5
+./Ex_5
+[06:44:58 19178] Parent doing some work
+[06:44:58 19179] Child started - doing some work
+[06:45:00 19179] Child waiting for parent
+[06:45:01 19178] Parent posts semaphore
+[06:45:01 19178] Parent about to wait for signal
+[06:45:01 19179] Child about to signal parent
+[06:45:01 19178] Parent got signal
+```

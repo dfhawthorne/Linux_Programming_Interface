@@ -26,12 +26,17 @@
 #define _GNU_SOURCE
 
 #include <error.h>
+#include <fcntl.h>
+#include <semaphore.h>
 #include <signal.h>
+#include <sys/stat.h>
 #include <sys/wait.h>
+#include <unistd.h>
 #include "curr_time.h"                  /* Declaration of currTime() */
 #include "tlpi_hdr.h"
 
 #define SYNC_SIG SIGUSR1                /* Synchronization signal */
+#define PARENT_SEM_NAME "/Ex_5_parent"
 
 static void             /* Signal handler - does nothing but return */
 handler(int sig)
@@ -48,9 +53,18 @@ main(int argc, char *argv[])
     pid_t childPid;
     sigset_t blockMask, origMask, emptyMask;
     struct sigaction sa;
+    sem_t *parent_sem;
 
     // Set verbose mode, if required
     if ((argc > 1) && !strcmp(argv[1],"-v")) verbose = 1;
+
+    // Set up semaphore for process synchronisation
+
+    if (verbose) fprintf(stderr, "Parent: set up semaphore\n");
+
+    sem_unlink(PARENT_SEM_NAME);    // Clean up any previous failed runs
+    if ((parent_sem = sem_open(PARENT_SEM_NAME, O_CREAT | O_EXCL, S_IRUSR | S_IWUSR, 0)) == NULL)
+        err_exit("sem_open");
 
     if (verbose) fprintf(stderr, "Parent: set up signal handler\n");
 
@@ -72,12 +86,18 @@ main(int argc, char *argv[])
         errExit("fork");
 
     case 0: /* Child */
-
         /* Child does some required action here... */
 
         printf("[%s %ld] Child started - doing some work\n",
                 currTime("%T"), (long) getpid());
         sleep(2);               /* Simulate time spent doing some work */
+
+        // Wait for parent to complete its required task
+
+        printf("[%s %ld] Child waiting for parent\n",
+                currTime("%T"), (long) getpid());
+        if (sem_wait(parent_sem) == -1)
+            errExit("sem_wait");
 
         /* And then signals parent that it's done */
 
@@ -95,6 +115,17 @@ main(int argc, char *argv[])
         /* Parent may do some work here, and then waits for child to
            complete the required action */
 
+        printf("[%s %ld] Parent doing some work\n",
+                currTime("%T"), (long) getpid());
+        sleep(3);               /* Simulate time spent doing some work */
+
+        /* tell child that parent has finished doing work */
+
+        printf("[%s %ld] Parent posts semaphore\n",
+                currTime("%T"), (long) getpid());
+        if (sem_post(parent_sem) == -1)
+            errExit("sem_post");
+
         printf("[%s %ld] Parent about to wait for signal\n",
                 currTime("%T"), (long) getpid());
         sigemptyset(&emptyMask);
@@ -108,6 +139,9 @@ main(int argc, char *argv[])
             errExit("sigprocmask");
 
         /* Parent carries on to do other things... */
+
+        sem_close(parent_sem);
+        sem_unlink(PARENT_SEM_NAME);
 
         exit(EXIT_SUCCESS);
     }
