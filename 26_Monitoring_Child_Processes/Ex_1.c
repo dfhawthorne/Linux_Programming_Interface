@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
 
     if ((argc > 1) && (!strcmp(argv[1],"-v"))) verbose = 1;
 
-    if (verbose) fprintf(stderr, "Parent: Create parent <-> child pipes\n");
+    if (verbose) fprintf(stderr, "Parent: Create parent <-> child pipe\n");
 
     line_num = __LINE__ + 1;
     if (pipe(pipe_fd) == -1) {
@@ -48,10 +48,10 @@ int main(int argc, char *argv[]) {
             break;
         
         case 0: // Child process
-            if (verbose) fprintf(stderr, "Child: close child -> parent pipe.\n");
+            if (verbose) fprintf(stderr, "Child: close write end of pipe.\n");
             close(pipe_fd[1]); // ignore errors for this pipe
             
-            if (verbose) fprintf(stderr, "Child: waiting for parent to close pipe.\n");
+            if (verbose) fprintf(stderr, "Child: waiting for parent to close read end of pipe.\n");
             line_num = __LINE__ + 1;
             pipe_buf_read = read(pipe_fd[0], pipe_buf, sizeof(pipe_buf));
 
@@ -61,7 +61,7 @@ int main(int argc, char *argv[]) {
                     break;
                 
                 case 0:
-                    if (verbose) fprintf(stderr, "Child: Parent has closed parent -> child pipe\n");
+                    if (verbose) fprintf(stderr, "Child: Parent has closed read end of pipe\n");
                     break;
                 
                 default:
@@ -69,7 +69,7 @@ int main(int argc, char *argv[]) {
                     break;
             }
 
-            close(pipe_fd[0]); // Ignore errors from close of Parent -> Child pipe
+            close(pipe_fd[0]); // Ignore errors from close of read end of pipe
             
             if (verbose) fprintf(stderr, "Child: Get process id of parent\n");
             line_num = __LINE__ + 1;
