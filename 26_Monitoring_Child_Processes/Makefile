@@ -33,11 +33,17 @@ test_1: Ex_1
 test_2: Ex_2
 	./Ex_2 $(RUN_ARGS)
 
-test_3: Ex_3
-	./Ex_3 $(RUN_ARGS)
+test_3: child_status
+	./child_status $(RUN_ARGS)
 
-test_4: Ex_4
-	./Ex_4 $(RUN_ARGS)
+test_4: make_zombie
+	./make_zombie $(RUN_ARGS)
+
+child_status: child_status.c print_wait_status.c error_functions.c get_num.c
+	$(CC) $(CFLAGS) $^ -o $@
+
+make_zombie: make_zombie.c error_functions.c
+	$(CC) $(CFLAGS) $^ -o $@
 
 %: %.c
 	$(CC) $(CFLAGS) $^ -o $@
