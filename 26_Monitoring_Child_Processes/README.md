@@ -51,3 +51,27 @@ Child: Parent PID=1
 Child: exiting.
 ```
 
+## Exercise 26-3
+
+Run:
+
+```bash
+make test_3
+```
+
+Sample output is:
+
+```text
+cc -std=c17 -Wall -Wextra -Wpedantic -Wimplicit-fallthrough -O2 child_status.c print_wait_status.c error_functions.c get_num.c -o child_status
+./child_status 10
+Child started with PID = 43397
+waitpid() returned: PID=43397; status=0x0000 (0,0)
+child killed by signal 10 (User defined signal 1)
+
+Additional fields from siginfo_t
+        Signal number=17
+        Signal code=1
+        Sending process ID=43397
+        Real user ID of sending process=1000
+        Memory location which cuased fault=   0x3e80000a985
+```

@@ -34,7 +34,7 @@ test_2: Ex_2
 	./Ex_2 $(RUN_ARGS)
 
 test_3: child_status
-	./child_status $(RUN_ARGS)
+	./child_status 10
 
 test_4: make_zombie
 	./make_zombie $(RUN_ARGS)

@@ -1,3 +1,12 @@
+// ----------------------------------------------------------------------------
+// Exercise 26-3:
+//
+// Replace the use of waitpid() with waitid() in Listing 26-3 (child_status.c).
+// The call to printWaitStatus() will need to be replaced by code that prints
+// relevant fields the siginfo_t structure returned by waitid().
+// ----------------------------------------------------------------------------
+
+
 /*************************************************************************\
 *                  Copyright (C) Michael Kerrisk, 2026.                   *
 *                                                                         *
@@ -22,6 +31,9 @@
    repeatedly waits on the child until it detects that the child either exited
    normally or was killed by a signal.
 */
+#define _GNU_SOURCE
+
+#include <signal.h>
 #include <sys/wait.h>
 #include "print_wait_status.h"          /* Declares printWaitStatus() */
 #include "tlpi_hdr.h"
@@ -31,11 +43,12 @@ main(int argc, char *argv[])
 {
     int status;
     pid_t childPid;
+    siginfo_t childSigInfo;
 
     if (argc > 1 && strcmp(argv[1], "--help") == 0)
         usageErr("%s [exit-status]\n", argv[0]);
 
-    switch (fork()) {
+    switch (childPid = fork()) {
     case -1: errExit("fork");
 
     case 0:             /* Child: either exits immediately with given
@@ -51,12 +64,8 @@ main(int argc, char *argv[])
     default:            /* Parent: repeatedly wait on child until it
                            either exits or is terminated by a signal */
         for (;;) {
-            childPid = waitpid(-1, &status, WUNTRACED
-#ifdef WCONTINUED       /* Not present on older versions of Linux */
-                                                | WCONTINUED
-#endif
-                    );
-            if (childPid == -1)
+            status = waitid(P_PID, childPid, &childSigInfo, WEXITED | WCONTINUED);
+            if (status == -1)
                 errExit("waitpid");
 
             /* Print status in hex, and as separate decimal bytes */
@@ -64,7 +73,7 @@ main(int argc, char *argv[])
             printf("waitpid() returned: PID=%ld; status=0x%04x (%d,%d)\n",
                     (long) childPid,
                     (unsigned int) status, status >> 8, status & 0xff);
-            printWaitStatus(NULL, status);
+            printWaitStatus(NULL, childSigInfo);
 
             if (WIFEXITED(status) || WIFSIGNALED(status))
                 exit(EXIT_SUCCESS);
