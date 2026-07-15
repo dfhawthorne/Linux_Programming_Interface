@@ -65,5 +65,5 @@ printWaitStatus(const char *msg, siginfo_t status)
     printf("\tSignal code=%d\n", status.si_code);
     printf("\tSending process ID=%ld\n", (long)status.si_pid);
     printf("\tReal user ID of sending process=%ld\n", (long)status.si_uid);
-    printf("\tMemory location which cuased fault=%16p\n", status.si_addr);
+    printf("\tMemory location which caused fault=%16p\n", status.si_addr);
 }

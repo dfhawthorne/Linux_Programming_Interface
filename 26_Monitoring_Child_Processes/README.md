@@ -64,14 +64,14 @@ Sample output is:
 ```text
 cc -std=c17 -Wall -Wextra -Wpedantic -Wimplicit-fallthrough -O2 child_status.c print_wait_status.c error_functions.c get_num.c -o child_status
 ./child_status 10
-Child started with PID = 43397
-waitpid() returned: PID=43397; status=0x0000 (0,0)
+Child started with PID = 36262
+waitpid() returned: PID=36262; status=0x0000 (0,0)
 child killed by signal 10 (User defined signal 1)
 
 Additional fields from siginfo_t
         Signal number=17
         Signal code=1
-        Sending process ID=43397
+        Sending process ID=36262
         Real user ID of sending process=1000
-        Memory location which cuased fault=   0x3e80000a985
+        Memory location which caused fault=   0x3e800008da6
 ```
