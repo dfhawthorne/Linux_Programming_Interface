@@ -1,3 +1,13 @@
+// ----------------------------------------------------------------------------
+// Exercise 26-4:
+// Listing 26-4 (make_zombie.c) uses a call to sleep() to allow the child
+// process a chance to execute and terminate before the parent executes
+// system(). This approach produces a theoretical race condition. Modify the
+// program to eliminate the race condition by using signals to synchronize the
+// parent and child.
+// ----------------------------------------------------------------------------
+
+
 /*************************************************************************\
 *                  Copyright (C) Michael Kerrisk, 2026.                   *
 *                                                                         *
@@ -18,8 +28,10 @@
 
 #define _GNU_SOURCE
 
-#include <signal.h>
+#include <error.h>
+#include <errno.h>
 #include <libgen.h>             /* For basename() declaration */
+#include <signal.h>
 #include <stdlib.h>
 #include <string.h>
 #include "tlpi_hdr.h"
@@ -32,7 +44,12 @@ main(int argc, char *argv[])
     int rc = 0;
     int verbose = 0;
     char cmd[CMD_SIZE];
-    pid_t childPid;
+    pid_t childPid = 0;
+    pid_t parent_pid = 0;
+    int line_num = 0;
+    int recv_sig = 0;
+    sigset_t sig_set;
+    siginfo_t sig_info;
     
     if ((argc > 1) && (!strcmp(argv[1],"-v"))) verbose = 1;
 
@@ -40,29 +57,99 @@ main(int argc, char *argv[])
 
     if (verbose) fprintf(stderr, "Get parent pid before fork()\n");
     
-    printf("Parent PID=%ld\n", (long) getpid());
+    line_num = __LINE__ + 1;
+    parent_pid = getpid();
+    if (parent_pid == -1)
+        error_at_line(
+            EXIT_FAILURE,
+            errno,
+            __FILE__,
+            line_num,
+            "getpid() failed"
+        );
+    printf("Parent PID=%ld\n", (long) parent_pid);
+
+    if (verbose) fprintf(stderr, "Create empty signal set\n");
+    line_num = __LINE__ + 1;
+    if (sigemptyset(&sig_set))
+        error_at_line(
+            EXIT_FAILURE,
+            errno,
+            __FILE__,
+            line_num,
+            "sigemptyset() failed"
+            );
+
+    if (verbose) fprintf(stderr, "Add SIGUSR1 to signal set\n");
+    line_num = __LINE__ + 1;
+    if (sigaddset(&sig_set, SIGUSR1))
+        error_at_line(
+            EXIT_FAILURE,
+            errno,
+            __FILE__,
+            line_num,
+            "sigaddset() failed"
+            );
 
     switch (childPid = fork()) {
     case -1:
         errExit("fork");
 
     case 0:     /* Child: immediately exits to become zombie */
+        if (verbose) fprintf(stderr, "Child started and wait for SIGUSR1 from parent\n");
+
+        line_num = __LINE__ + 1;
+        switch (recv_sig = sigwaitinfo(&sig_set, &sig_info)) {
+            case -1:
+                error_at_line(
+                    EXIT_FAILURE,
+                    errno,
+                    __FILE__,
+                    line_num,
+                    "sigwaitinfo() failed"
+                    );
+                break;
+            
+            default:
+                if (verbose)
+                    fprintf(
+                        stderr,
+                        "Received signal %d from process with PID=%ld\n",
+                        sig_info.si_signo,
+                        (long)sig_info.si_pid
+                        );
+                break;
+            }
+
         printf("Child (PID=%ld) exiting\n", (long) getpid());
         _exit(EXIT_SUCCESS);
 
     default:    /* Parent */
-        sleep(3);               /* Give child a chance to start and exit */
-        snprintf(cmd, CMD_SIZE, "ps | grep %s", basename(argv[0]));
+        if (verbose) fprintf(stderr, "Parent continues\nChild PID=%ld\n", (long)childPid);
+        if (verbose) fprintf(stderr, "Parent checks status of processes\n");
+        snprintf(cmd, CMD_SIZE, "ps -ef| grep %s", basename(argv[0]));
+        if (verbose) fprintf(stderr, "Command to execute is '%s'\n", cmd);
         rc = system(cmd);            /* View zombie child */
         
         if (verbose) fprintf(stderr, "First system() call returned %d\n", rc);
+
+        if (verbose) fprintf(stderr, "Parents sends SIGUSR1 to Child\n");
+        line_num = __LINE__ + 1;
+        if (kill(childPid, SIGUSR1) == -1)
+            error_at_line(
+                EXIT_FAILURE,
+                errno,
+                __FILE__,
+                line_num,
+                "kill() failed"
+                );
 
         /* Now send the "sure kill" signal to the zombie */
 
         if (kill(childPid, SIGKILL) == -1)
             errMsg("kill");
-        sleep(3);               /* Give child a chance to react to signal */
         printf("After sending SIGKILL to zombie (PID=%ld):\n", (long) childPid);
+
         rc = system(cmd);            /* View zombie child again */
         
         if (verbose) fprintf(stderr, "Second system() call returned %d\n", rc);
