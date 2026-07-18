@@ -81,33 +81,20 @@ Additional fields from siginfo_t
 Run:
 
 ```bash
-make test_4 VERBOSE=1
+make test_4
 ```
 
 Sample output is:
 
 ```text
 cc -std=c17 -Wall -Wextra -Wpedantic -Wimplicit-fallthrough -O2 make_zombie.c error_functions.c -o make_zombie
-./make_zombie -v
-Get parent pid before fork()
-Parent PID=24933
-Create empty signal set
-Add SIGUSR1 to signal set
-Parent continues
-Child PID=24934
-Parent checks status of processes
-Command to execute is 'ps -ef| grep make_zombie'
-Child started and wait for SIGUSR1 from parent
-douglas    24933   24924  0 01:20 pts/0    00:00:00 ./make_zombie -v
-douglas    24934   24933  0 01:20 pts/0    00:00:00 ./make_zombie -v
-douglas    24935   24933  0 01:20 pts/0    00:00:00 sh -c -- ps -ef| grep make_zombie
-douglas    24937   24935  0 01:20 pts/0    00:00:00 grep make_zombie
-First system() call returned 0
-Parents sends SIGUSR1 to Child
-After sending SIGKILL to zombie (PID=24934):
-douglas    24933   24924  0 01:20 pts/0    00:00:00 ./make_zombie -v
-douglas    24934   24933  0 01:20 pts/0    00:00:00 [make_zombie] <defunct>
-douglas    24938   24933  0 01:20 pts/0    00:00:00 sh -c -- ps -ef| grep make_zombie
-douglas    24940   24938  0 01:20 pts/0    00:00:00 grep make_zombie
-Second system() call returned 0
+./make_zombie 
+Parent PID=18726
+UID          PID    PPID  C STIME TTY          TIME CMD
+douglas    18726   18717  0 13:59 pts/0    00:00:00 ./make_zombie
+douglas    18727   18726  0 13:59 pts/0    00:00:00 [make_zombie] <defunct>
+After sending SIGKILL to zombie (PID=18727):
+UID          PID    PPID  C STIME TTY          TIME CMD
+douglas    18726   18717  0 13:59 pts/0    00:00:00 ./make_zombie
+douglas    18727   18726  0 13:59 pts/0    00:00:00 [make_zombie] <defunct>
 ```

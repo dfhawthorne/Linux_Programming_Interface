@@ -126,12 +126,6 @@ main(int argc, char *argv[])
 
     default:    /* Parent */
         if (verbose) fprintf(stderr, "Parent continues\nChild PID=%ld\n", (long)childPid);
-        if (verbose) fprintf(stderr, "Parent checks status of processes\n");
-        snprintf(cmd, CMD_SIZE, "ps -ef| grep %s", basename(argv[0]));
-        if (verbose) fprintf(stderr, "Command to execute is '%s'\n", cmd);
-        rc = system(cmd);            /* View zombie child */
-        
-        if (verbose) fprintf(stderr, "First system() call returned %d\n", rc);
 
         if (verbose) fprintf(stderr, "Parents sends SIGUSR1 to Child\n");
         line_num = __LINE__ + 1;
@@ -143,6 +137,13 @@ main(int argc, char *argv[])
                 line_num,
                 "kill() failed"
                 );
+
+        if (verbose) fprintf(stderr, "Parent checks status of processes\n");
+        snprintf(cmd, CMD_SIZE, "ps -fC %s", basename(argv[0]));
+        if (verbose) fprintf(stderr, "Command to execute is '%s'\n", cmd);
+        rc = system(cmd);            /* View zombie child */
+        
+        if (verbose) fprintf(stderr, "First system() call returned %d\n", rc);
 
         /* Now send the "sure kill" signal to the zombie */
 
