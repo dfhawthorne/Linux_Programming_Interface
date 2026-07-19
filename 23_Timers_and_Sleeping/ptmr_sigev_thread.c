@@ -36,6 +36,8 @@
 */
 
 #define _POSIX_C_SOURCE 199309L
+#include <errno.h>
+#include <error.h>
 #include <signal.h>
 #include <time.h>
 #include <pthread.h>
@@ -43,48 +45,17 @@
 #include "tlpi_hdr.h"
 #include "itimerspec_from_str.h"    /* Declares itimerspecFromStr() */
 
-static pthread_mutex_t mtx = PTHREAD_MUTEX_INITIALIZER;
-static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
-
-static int expireCnt = 0;           /* Number of expirations of all timers */
-
-static void                         /* Thread notification function */
-threadFunc(union sigval sv)
-{
-    timer_t *tidptr;
-    int s;
-
-    tidptr = sv.sival_ptr;
-
-    printf("[%s] Thread notify\n", currTime("%T"));
-    printf("    timer ID=%ld\n", (long) *tidptr);
-    printf("    timer_getoverrun()=%d\n", timer_getoverrun(*tidptr));
-
-    /* Increment counter variable shared with main thread and signal
-       condition variable to notify main thread of the change. */
-
-    s = pthread_mutex_lock(&mtx);
-    if (s != 0)
-        errExitEN(s, "pthread_mutex_lock");
-
-    expireCnt += 1 + timer_getoverrun(*tidptr);
-
-    s = pthread_mutex_unlock(&mtx);
-    if (s != 0)
-        errExitEN(s, "pthread_mutex_unlock");
-
-    s = pthread_cond_signal(&cond);
-    if (s != 0)
-        errExitEN(s, "pthread_cond_signal");
-}
-
 int
 main(int argc, char *argv[])
 {
     struct sigevent sev;
     struct itimerspec ts;
     timer_t *tidlist;
+    timer_t *tidptr;
     int s, j;
+    sigset_t alarm_sig_set;
+    siginfo_t alarm_sig_info;
+    int expireCnt = 0;           /* Number of expirations of all timers */
 
     if (argc < 2)
         usageErr("%s secs[/nsecs][:int-secs[/int-nsecs]]...\n", argv[0]);
@@ -93,10 +64,40 @@ main(int argc, char *argv[])
     if (tidlist == NULL)
         errExit("malloc");
 
-    sev.sigev_notify = SIGEV_THREAD;            /* Notify via thread */
-    sev.sigev_notify_function = threadFunc;     /* Thread start function */
+    sev.sigev_notify = SIGEV_SIGNAL;            /* Notify via signal */
+    sev.sigev_signo = SIGALRM;
     sev.sigev_notify_attributes = NULL;
             /* Could be pointer to pthread_attr_t structure */
+
+    int line_num = __LINE__ + 1;
+    if (sigemptyset(&alarm_sig_set) == -1)
+        error_at_line(
+            EXIT_FAILURE,
+            errno,
+            __FILE__,
+            line_num,
+            "sigsetclear() failed"
+            );
+
+    line_num = __LINE__ + 1;
+    if (sigaddset(&alarm_sig_set, SIGALRM) == -1)
+        error_at_line(
+            EXIT_FAILURE,
+            errno,
+            __FILE__,
+            line_num,
+            "sigaddset() failed"
+            );
+
+    line_num = __LINE__ + 1;
+    if (sigprocmask(SIG_BLOCK, &alarm_sig_set, NULL) == -1)
+        error_at_line(
+            EXIT_FAILURE,
+            errno,
+            __FILE__,
+            line_num,
+            "sigprocmask() failed"
+            );
 
     /* Create and start one timer for each command-line argument */
 
@@ -114,18 +115,27 @@ main(int argc, char *argv[])
             errExit("timer_settime");
     }
 
-    /* The main thread waits on a condition variable that is signaled
-       on each invocation of the thread notification function. We
-       print a message so that the user can see that this occurred. */
-
-    s = pthread_mutex_lock(&mtx);
-    if (s != 0)
-        errExitEN(s, "pthread_mutex_lock");
-
     for (;;) {
-        s = pthread_cond_wait(&cond, &mtx);
-        if (s != 0)
-            errExitEN(s, "pthread_cond_wait");
+        int sig_recv;
+
+        line_num = __LINE__ + 1;
+        if ((sig_recv = sigwaitinfo(&alarm_sig_set, &alarm_sig_info)) == -1)
+            if (errno != EINTR)
+                error_at_line(
+                    EXIT_FAILURE,
+                    errno,
+                    __FILE__,
+                    line_num,
+                    "sigwaitinfo() failed"
+                    );
+
+        tidptr = alarm_sig_info.si_value.sival_ptr;
+
+        printf("[%s] Thread notify\n", currTime("%T"));
+        printf("    timer ID=%ld\n", (long) *tidptr);
+        printf("    timer_getoverrun()=%d\n", timer_getoverrun(*tidptr));
+
+        expireCnt += 1 + timer_getoverrun(*tidptr);
         printf("main(): expireCnt = %d\n", expireCnt);
     }
 }
