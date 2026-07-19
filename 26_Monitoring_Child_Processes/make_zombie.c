@@ -91,12 +91,40 @@ main(int argc, char *argv[])
             "sigaddset() failed"
             );
 
+    if (verbose) fprintf(stderr, "Block SIGUSR1\n");
+    line_num = __LINE__ + 1;
+    if (sigprocmask(SIG_BLOCK, &sig_set, NULL))
+        error_at_line(
+            EXIT_FAILURE,
+            errno,
+            __FILE__,
+            line_num,
+            "sigprocmask() failed"
+            );
+
     switch (childPid = fork()) {
     case -1:
         errExit("fork");
 
     case 0:     /* Child: immediately exits to become zombie */
-        if (verbose) fprintf(stderr, "Child started and wait for SIGUSR1 from parent\n");
+        if (verbose) fprintf(stderr, "Child started\n");
+
+        if (verbose) fprintf(stderr, "Child sends SIGUSR1 to parent\n");
+        line_num = __LINE__ + 1;
+        if (kill(parent_pid, SIGUSR1) == -1)
+            error_at_line(
+                EXIT_FAILURE,
+                errno,
+                __FILE__,
+                line_num,
+                "kill() failed"
+                );
+
+        printf("Child (PID=%ld) exiting\n", (long) getpid());
+        _exit(EXIT_SUCCESS);
+
+    default:    /* Parent */
+        if (verbose) fprintf(stderr, "Parent continues\nChild PID=%ld\n", (long)childPid);
 
         line_num = __LINE__ + 1;
         switch (recv_sig = sigwaitinfo(&sig_set, &sig_info)) {
@@ -121,23 +149,6 @@ main(int argc, char *argv[])
                 break;
             }
 
-        printf("Child (PID=%ld) exiting\n", (long) getpid());
-        _exit(EXIT_SUCCESS);
-
-    default:    /* Parent */
-        if (verbose) fprintf(stderr, "Parent continues\nChild PID=%ld\n", (long)childPid);
-
-        if (verbose) fprintf(stderr, "Parents sends SIGUSR1 to Child\n");
-        line_num = __LINE__ + 1;
-        if (kill(childPid, SIGUSR1) == -1)
-            error_at_line(
-                EXIT_FAILURE,
-                errno,
-                __FILE__,
-                line_num,
-                "kill() failed"
-                );
-
         if (verbose) fprintf(stderr, "Parent checks status of processes\n");
         snprintf(cmd, CMD_SIZE, "ps -fC %s", basename(argv[0]));
         if (verbose) fprintf(stderr, "Command to execute is '%s'\n", cmd);
@@ -151,6 +162,7 @@ main(int argc, char *argv[])
             errMsg("kill");
         printf("After sending SIGKILL to zombie (PID=%ld):\n", (long) childPid);
 
+        sleep(5);                    // allow child time to clean up
         rc = system(cmd);            /* View zombie child again */
         
         if (verbose) fprintf(stderr, "Second system() call returned %d\n", rc);

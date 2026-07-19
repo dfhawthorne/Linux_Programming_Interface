@@ -89,12 +89,13 @@ Sample output is:
 ```text
 cc -std=c17 -Wall -Wextra -Wpedantic -Wimplicit-fallthrough -O2 make_zombie.c error_functions.c -o make_zombie
 ./make_zombie 
-Parent PID=18726
+Parent PID=63617
+Child (PID=63618) exiting
 UID          PID    PPID  C STIME TTY          TIME CMD
-douglas    18726   18717  0 13:59 pts/0    00:00:00 ./make_zombie
-douglas    18727   18726  0 13:59 pts/0    00:00:00 [make_zombie] <defunct>
-After sending SIGKILL to zombie (PID=18727):
+douglas    63617   63608  0 08:39 pts/0    00:00:00 ./make_zombie
+douglas    63618   63617  0 08:39 pts/0    00:00:00 [make_zombie] <defunct>
+After sending SIGKILL to zombie (PID=63618):
 UID          PID    PPID  C STIME TTY          TIME CMD
-douglas    18726   18717  0 13:59 pts/0    00:00:00 ./make_zombie
-douglas    18727   18726  0 13:59 pts/0    00:00:00 [make_zombie] <defunct>
+douglas    63617   63608  0 08:39 pts/0    00:00:00 ./make_zombie
+douglas    63618   63617  0 08:39 pts/0    00:00:00 [make_zombie] <defunct>
 ```
