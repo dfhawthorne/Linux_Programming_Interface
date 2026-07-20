@@ -119,8 +119,10 @@ main(int argc, char *argv[])
         int sig_recv;
 
         line_num = __LINE__ + 1;
-        if ((sig_recv = sigwaitinfo(&alarm_sig_set, &alarm_sig_info)) == -1)
-            if (errno != EINTR)
+        if ((sig_recv = sigwaitinfo(&alarm_sig_set, &alarm_sig_info)) == -1) {
+            if (errno == EINTR) {
+                continue;
+            } else {
                 error_at_line(
                     EXIT_FAILURE,
                     errno,
@@ -128,6 +130,8 @@ main(int argc, char *argv[])
                     line_num,
                     "sigwaitinfo() failed"
                     );
+                }
+            }
 
         tidptr = alarm_sig_info.si_value.sival_ptr;
 

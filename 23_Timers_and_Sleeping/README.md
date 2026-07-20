@@ -86,11 +86,11 @@ Press <ctrl-z> to suspend the process
 Wait for a few seconds, then run 'fg'
 douglas@coogee:23_Timers_and_Sleeping$ ./ptmr_sigev_thread 2:5
 Timer ID: 0 (2:5)
-[08:32:17] Thread notify
+[04:08:02] Thread notify
     timer ID=0
     timer_getoverrun()=0
 main(): expireCnt = 1
-[08:32:22] Thread notify
+[04:08:07] Thread notify
     timer ID=0
     timer_getoverrun()=0
 main(): expireCnt = 2
@@ -98,22 +98,18 @@ main(): expireCnt = 2
 [1]+  Stopped                 ./ptmr_sigev_thread 2:5
 douglas@coogee:23_Timers_and_Sleeping$ fg
 ./ptmr_sigev_thread 2:5
-[08:33:18] Thread notify
+[04:08:32] Thread notify
+    timer ID=0
+    timer_getoverrun()=4
+main(): expireCnt = 7
+[04:08:37] Thread notify
     timer ID=0
     timer_getoverrun()=0
-main(): expireCnt = 3
-[08:33:18] Thread notify
-    timer ID=0
-    timer_getoverrun()=10
-main(): expireCnt = 14
-[08:33:22] Thread notify
+main(): expireCnt = 8
+[04:08:42] Thread notify
     timer ID=0
     timer_getoverrun()=0
-main(): expireCnt = 15
-[08:33:27] Thread notify
-    timer ID=0
-    timer_getoverrun()=0
-main(): expireCnt = 16
+main(): expireCnt = 9
 ^C
 douglas@coogee:23_Timers_and_Sleeping$ 
 ```
