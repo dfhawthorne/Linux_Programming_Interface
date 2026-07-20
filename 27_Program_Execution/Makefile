@@ -27,8 +27,8 @@ endif
 
 all: test_1 test_2 test_3 test_4 test_5 test_6
 
-test_1: Ex_1
-	./Ex_1 $(RUN_ARGS)
+test_1: t_execlp dir1/xyz dir2/xyz
+	./Ex_1.sh
 
 test_2: Ex_2
 	./Ex_2 $(RUN_ARGS)
@@ -44,6 +44,9 @@ test_5: Ex_5
 
 test_6: Ex_6
 	./Ex_6 $(RUN_ARGS)
+
+t_execlp: t_execlp.c error_functions.c get_num.c
+	$(CC) $(CFLAGS) $^ -o $@
 
 %: %.c
 	$(CC) $(CFLAGS) $^ -o $@
