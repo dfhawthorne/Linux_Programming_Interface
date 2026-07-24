@@ -30,7 +30,7 @@ all: test_1 test_2 test_3 test_4 test_5 test_6
 test_1: t_execlp dir1/xyz dir2/xyz
 	./Ex_1.sh
 
-test_2: Ex_2
+test_2: Ex_2 Ex_2_child
 	./Ex_2 $(RUN_ARGS)
 
 test_3: Ex_3
