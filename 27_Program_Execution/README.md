@@ -55,3 +55,22 @@ my_execlp: arg #3 = "c"
         3: "c"
 Environment variable ("USER") has value ("douglas")
 ```
+
+## Exercise 3
+
+Run:
+
+```bash
+make test_3 VERBOSE=1
+```
+
+Sample output is:
+
+```text
+cc -std=c17 -Wall -Wextra -Wpedantic -Wimplicit-fallthrough -O2 Ex_3.c -o Ex_3
+./Ex_3 -v
+Parent spawned PID=154322
+Child started
+     1  #!/bin/cat -n
+     2  Hello world
+```
