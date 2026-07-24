@@ -31,13 +31,13 @@ test_1: t_execlp dir1/xyz dir2/xyz
 	./Ex_1.sh
 
 test_2: Ex_2 Ex_2_child
-	./Ex_2 $(RUN_ARGS)
+	./Ex_2.sh $(RUN_ARGS)
 
 test_3: Ex_3
 	./Ex_3 $(RUN_ARGS)
 
 test_4: Ex_4
-	./Ex_4 $(RUN_ARGS)
+	./Ex_4.sh $(RUN_ARGS)
 
 test_5: Ex_5
 	./Ex_5 $(RUN_ARGS)

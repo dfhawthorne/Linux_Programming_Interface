@@ -28,12 +28,12 @@ total 20
 Progam xyz executed from dir1/
 ```
 
-## Exercise 2
+## Exercise 27-2
 
 Run:
 
 ```bash
-make test_2 VERBOSE=1
+make test_2
 ```
 
 Sample output is:
@@ -41,22 +41,16 @@ Sample output is:
 ```text
 cc -std=c17 -Wall -Wextra -Wpedantic -Wimplicit-fallthrough -O2 Ex_2.c -o Ex_2
 cc -std=c17 -Wall -Wextra -Wpedantic -Wimplicit-fallthrough -O2 Ex_2_child.c -o Ex_2_child
-Parent spawned PID=127099
-Child started
-my_execlp started for "./Ex_2_child"
-my_execlp: num passed args=4
-my_execlp: arg #0 = "./Ex_2_child"
-my_execlp: arg #1 = "string"
-my_execlp: arg #2 = "2000"
-my_execlp: arg #3 = "c"
-./Ex_2_child: Arguments passed
+./Ex_2.sh 
+Parent spawned PID=18666
+Ex_2_child: Arguments passed
         1: "string"
         2: "2000"
         3: "c"
 Environment variable ("USER") has value ("douglas")
 ```
 
-## Exercise 3
+## Exercise 27-3
 
 Run:
 
@@ -74,3 +68,46 @@ Child started
      1  #!/bin/cat -n
      2  Hello world
 ```
+
+## Exercise 27-4
+
+Run:
+
+```bash
+make test_4 VERBOSE=1
+```
+
+Sample output is:
+
+```text
+cc -std=c17 -Wall -Wextra -Wpedantic -Wimplicit-fallthrough -O2 Ex_4.c -o Ex_4
+./Ex_4 -v
+Parent initialises semaphore
+Parent spawns child
+Parent continues
+Child spawns grandchild
+Child makes grandchild an orphan
+Grandchild does real work
+Parent continues
+UID          PID    PPID  C STIME TTY          TIME CMD
+douglas   166139  166132  0 22:32 pts/0    00:00:00 ./Ex_4 -v
+douglas   166141    3702  0 22:32 pts/0    00:00:00 ./Ex_4 -v
+UID          PID    PPID  C STIME TTY          TIME CMD
+douglas   166139  166132  0 22:32 pts/0    00:00:00 ./Ex_4 -v
+douglas   166141    3702  0 22:32 pts/0    00:00:00 ./Ex_4 -v
+```
+
+To see what process with pid=3702 is, run:
+
+```bash
+ps -fp 3702
+```
+
+Sample output is:
+
+```text
+UID          PID    PPID  C STIME TTY          TIME CMD
+douglas     3702       1  0 Jul23 ?        00:00:08 /usr/lib/systemd/systemd --user
+```
+
+Such code could be used to create daemons.

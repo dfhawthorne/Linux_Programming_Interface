@@ -95,7 +95,7 @@ int main(int argc, char *argv[]) {
         case 0:     // child process
             if (verbose) fprintf(stderr, "Child started\n");
             line_num = __LINE__ + 1;
-            int rc = my_execlp("./Ex_2_child", "./Ex_2_child", "string", "2000", "c", (char *)NULL);
+            int rc = my_execlp("Ex_2_child", "Ex_2_child", "string", "2000", "c", (char *)NULL);
             if (rc == -1) {
                 error_at_line(
                     EXIT_FAILURE,
