@@ -1,6 +1,12 @@
 // -----------------------------------------------------------------------------
 // Exercise 27-2:
 //
+// Use execve() to implement execlp(). You will need to use the stdarg(3) API
+// to handle the variable-length argument list supplied to execlp(). You will
+// need to use functions in the malloc package to allocate space for the
+// argument and environment vectors. Finally, note the easy way of checking
+// whether a file exists in a particular directory and is executable is simply
+// to try execing the file.
 // -----------------------------------------------------------------------------
 
 #define _GNU_SOURCE
@@ -13,6 +19,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
 
 static int verbose = 0;
 
@@ -30,7 +37,7 @@ int my_execlp(const char *pathname, ...) {
     int errno_save;
     va_list ap;
     char **argv = NULL;
-    char **envp = NULL;
+    char **envp = environ;
     int num_passed_args = 0;
 
     if (verbose) fprintf(stderr, "my_execlp started for \"%s\"\n", pathname);
