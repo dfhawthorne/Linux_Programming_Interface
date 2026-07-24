@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 
@@ -108,6 +109,7 @@ int main(int argc, char *argv[]) {
             break;
         default:    // parent process
             printf("Parent spawned PID=%ld\n", (long)child_pid);
+            wait(NULL);
             break;
     }
     return 0;
