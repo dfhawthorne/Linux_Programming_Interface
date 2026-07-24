@@ -34,7 +34,7 @@ test_2: Ex_2 Ex_2_child
 	./Ex_2.sh $(RUN_ARGS)
 
 test_3: Ex_3
-	./Ex_3 $(RUN_ARGS)
+	./Ex_3_test.sh $(RUN_ARGS)
 
 test_4: Ex_4
 	./Ex_4.sh $(RUN_ARGS)

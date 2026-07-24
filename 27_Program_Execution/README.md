@@ -55,16 +55,15 @@ Environment variable ("USER") has value ("douglas")
 Run:
 
 ```bash
-make test_3 VERBOSE=1
+make test_3
 ```
 
 Sample output is:
 
 ```text
 cc -std=c17 -Wall -Wextra -Wpedantic -Wimplicit-fallthrough -O2 Ex_3.c -o Ex_3
-./Ex_3 -v
-Parent spawned PID=154322
-Child started
+./Ex_3_test.sh 
+Parent spawned PID=19500
      1  #!/bin/cat -n
      2  Hello world
 ```

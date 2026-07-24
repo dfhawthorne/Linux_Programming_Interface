@@ -4,7 +4,6 @@
 // -----------------------------------------------------------------------------
 
 #define _GNU_SOURCE
-#define MAX_INT_STR_SZ 10
 
 #include <errno.h>
 #include <error.h>
@@ -37,14 +36,14 @@ int main(int argc, char *argv[]) {
         case 0:     // child process
             if (verbose) fprintf(stderr, "Child started\n");
             line_num = __LINE__ + 1;
-            int rc = execlp("./Ex_3.sh", "./Ex_3.sh", (char *)NULL);
+            int rc = execlp("Ex_3_child.sh", "Ex_3_child.sh", (char *)NULL);
             if (rc == -1) {
                 error_at_line(
                     EXIT_FAILURE,
                     errno,
                     __FILE__,
                     line_num,
-                    "my_execlp() failed"
+                    "execlp() failed"
                 );
                 _exit(EXIT_FAILURE);
             }
