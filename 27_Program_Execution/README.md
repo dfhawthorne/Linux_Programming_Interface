@@ -41,8 +41,7 @@ Sample output is:
 ```text
 cc -std=c17 -Wall -Wextra -Wpedantic -Wimplicit-fallthrough -O2 Ex_2.c -o Ex_2
 cc -std=c17 -Wall -Wextra -Wpedantic -Wimplicit-fallthrough -O2 Ex_2_child.c -o Ex_2_child
-./Ex_2 -v
-Parent spawned PID=109463
+Parent spawned PID=127099
 Child started
 my_execlp started for "./Ex_2_child"
 my_execlp: num passed args=4
@@ -54,4 +53,5 @@ my_execlp: arg #3 = "c"
         1: "string"
         2: "2000"
         3: "c"
+Environment variable ("USER") has value ("douglas")
 ```

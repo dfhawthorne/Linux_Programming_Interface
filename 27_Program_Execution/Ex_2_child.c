@@ -11,9 +11,14 @@ int main(int argc, char *argv[]) {
 
     switch (argc) {
         case 0:
-            printf("Ex_2_child: No argv[0] passed\n");
-            errno = EINVAL;
-            return -1;
+            line_num = __LINE__;
+            error_at_line(
+                EXIT_FAILURE,
+                EINVAL,
+                __FILE__,
+                line_num,
+                "argv[0] missing"
+            );
             break;
 
         case 1:
