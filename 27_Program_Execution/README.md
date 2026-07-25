@@ -80,33 +80,18 @@ Sample output is:
 
 ```text
 cc -std=c17 -Wall -Wextra -Wpedantic -Wimplicit-fallthrough -O2 Ex_4.c -o Ex_4
-./Ex_4 -v
-Parent initialises semaphore
-Parent spawns child
-Parent continues
-Child spawns grandchild
-Child makes grandchild an orphan
-Grandchild does real work
-Parent continues
+make test_4
+./Ex_4.sh 
 UID          PID    PPID  C STIME TTY          TIME CMD
-douglas   166139  166132  0 22:32 pts/0    00:00:00 ./Ex_4 -v
-douglas   166141    3702  0 22:32 pts/0    00:00:00 ./Ex_4 -v
+douglas    15310   15308  0 17:37 pts/0    00:00:00 ./Ex_4
+douglas    15312    2977  0 17:37 pts/0    00:00:00 ./Ex_4
+Program has terminated. But grandchild is still running
 UID          PID    PPID  C STIME TTY          TIME CMD
-douglas   166139  166132  0 22:32 pts/0    00:00:00 ./Ex_4 -v
-douglas   166141    3702  0 22:32 pts/0    00:00:00 ./Ex_4 -v
+douglas    15312    2977  0 17:37 pts/0    00:00:00 ./Ex_4
+Grandchild is now owned by the following process
+UID          PID    PPID  C STIME TTY          TIME CMD
+douglas     2977       1  0 15:55 ?        00:00:01 /usr/lib/systemd/systemd --user
+Grandchild is now killed
 ```
 
-To see what process with pid=3702 is, run:
-
-```bash
-ps -fp 3702
-```
-
-Sample output is:
-
-```text
-UID          PID    PPID  C STIME TTY          TIME CMD
-douglas     3702       1  0 Jul23 ?        00:00:08 /usr/lib/systemd/systemd --user
-```
-
-Such code could be used to create daemons.
+Such code could be used to create daemons that are owned by `systemd`.
