@@ -117,3 +117,28 @@ Hello World
 In the first case, all output is lost as `exec()` replace the program text and
 data. The normal behaviour for output to stdout is store the output in the
 program data area. This is validated when buffering is disabled for stdout.
+
+## Exercise 27-6
+
+Run:
+
+```bash
+make test_6
+```
+
+Sample output is:
+
+```text
+cc -std=c17 -Wall -Wextra -Wpedantic -Wimplicit-fallthrough -O2 Ex_6.c -o Ex_6
+./Ex_6
+Child status=0
+sigchld_handler: 17 signal caught
+sigchld_handler: child PID=7914
+sigchld_handler: child's real user ID=1000
+sigchld_handler: child exited with status=0
+sigchld_handler: child user CPU time=0
+sigchld_handler: child system CPU time=0
+```
+
+SIGCHLD is issued when the child exits, but is blocked from reaching the signal
+handler until it is unblocked. The `waitpid()` call does not depend on signals.
