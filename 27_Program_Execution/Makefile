@@ -40,7 +40,7 @@ test_4: Ex_4
 	./Ex_4.sh $(RUN_ARGS)
 
 test_5: Ex_5
-	./Ex_5 $(RUN_ARGS)
+	./Ex_5.sh $(RUN_ARGS)
 
 test_6: Ex_6
 	./Ex_6 $(RUN_ARGS)

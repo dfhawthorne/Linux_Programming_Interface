@@ -95,3 +95,25 @@ Grandchild is now killed
 ```
 
 Such code could be used to create daemons that are owned by `systemd`.
+
+## Exercise 27-5
+
+Run:
+
+```bash
+make test_5
+```
+
+Sample output is:
+
+```text
+cc -std=c17 -Wall -Wextra -Wpedantic -Wimplicit-fallthrough -O2 Ex_5.c -o Ex_5
+./Ex_5.sh
+Run program with standard buffering on stdout
+Run program with no buffering on stdout
+Hello World
+```
+
+In the first case, all output is lost as `exec()` replace the program text and
+data. The normal behaviour for output to stdout is store the output in the
+program data area. This is validated when buffering is disabled for stdout.
