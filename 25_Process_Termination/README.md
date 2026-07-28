@@ -1,4 +1,4 @@
-# Exercise 25: Process Termination
+# Chapter 25: Process Termination
 
 ## Exercise 25-1
 

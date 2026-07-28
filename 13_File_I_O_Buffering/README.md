@@ -1,7 +1,6 @@
-Chapter 13: File I/O Buffering
-==============================
+# Chapter 13: File I/O Buffering
 
-# Exercise 13-1
+## Exercise 13-1
 
 To build the solution, run `make ex13_1`.
 
@@ -25,7 +24,7 @@ Output file has the following fields:
 5. User time in seconds
 6. System time in seconds
 
-## Part (a)
+### Part (a)
 
 ```bash
 $ ./ex13_1 -b 512  /tmp/ex13_1.in /tmp/ex13_1.out 
@@ -38,7 +37,7 @@ __Note__ The fourth column (Wall clock time) appears not to match the output fro
 
 Increasing the internal buffer size from 512 to 65536 (64K) reduced the overall time (user + sys) from 0.21s to 0.08s (a 62% reduction).
 
-## Part (b)
+### Part (b)
 
 ```bash
 $ ./ex13_1 -b 65536 -s /tmp/ex13_1.in /tmp/ex13_1.out 
@@ -51,11 +50,11 @@ __Note__ The actual elapsed time for the 512 byte buffer case was several hours 
 
 Adding `O_SYNC` significantly increasing the run time (but the effect is much less with larger internal buffers).
 
-## Part (c)
+### Part (c)
 
 Not done yet.
 
-# Exercise 13-2
+## Exercise 13-2
 
 To compile the solution, run:
 ```bash
@@ -72,11 +71,11 @@ Sample output is:
 4096    -       f       d       409600  0.04    0.00    0.03
 ```
 
-# Exercise 13-3
+## Exercise 13-3
 
 Refer to Ex13-3.md
 
-# Exercise 13-4
+## Exercise 13-4
 
 To compile the solution, run:
 ```bash
@@ -106,7 +105,7 @@ I would have written you a shorter letter.
 If I had more time,
 ```
 
-# Exercise 13-5
+## Exercise 13-5
 
 To compile the solution, run:
 ```bash

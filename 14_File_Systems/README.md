@@ -1,7 +1,6 @@
-Chapter 14: File Systems
-========================
+# Chapter 14: File Systems
 
-# Exercise 14-1
+## Exercise 14-1
 
 To build the solution, run `make ex14_1`.
 

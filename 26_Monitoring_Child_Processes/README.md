@@ -1,4 +1,4 @@
-# 26: Monitoring Child Processes
+# Chapter 26: Monitoring Child Processes
 
 ## Exercise 26-1
 
