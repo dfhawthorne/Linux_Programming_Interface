@@ -28,8 +28,8 @@ endif
 
 all: test_1 test_2
 
-test_1: Ex_1
-	./Ex_1
+test_1: Ex_1 Ex_1a
+	./Ex_1.sh
 
 test_2: Ex_2
 	./Ex_2

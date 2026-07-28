@@ -1,5 +1,5 @@
 // -----------------------------------------------------------------------------
-// Exercise 29-1:
+// Exercise 29-1: (amended version)
 //
 // What possible outcomes might there be if a thread executes the following
 // code:
@@ -18,9 +18,12 @@
 int main() {
     int line_num = 0;
     int err_rtn = 0;
+    pthread_t tid;
+
+    tid = pthread_self();   // always succeeds
 
     line_num = __LINE__ + 1;
-    if ((err_rtn = pthread_join(pthread_self(), NULL)))
+    if ((tid != pthread_self()) && (err_rtn = pthread_join(tid, NULL)))
         error_at_line(
             EXIT_FAILURE,
             err_rtn,
