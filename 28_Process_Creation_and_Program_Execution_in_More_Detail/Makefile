@@ -1,4 +1,4 @@
-.PHONY: all test_1 test_2 test_3 test_4 test_5 test_6
+.PHONY: all test_1
 
 # ------------------------------------------------------------------------------
 # Set up global variables
