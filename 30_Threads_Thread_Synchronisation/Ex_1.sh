@@ -3,4 +3,5 @@
 # Test harnass for Exercise 30-1
 # --------------------------------------------------------------------------------------
 
+LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:../Shared_Libraries"
 ./thread_incr

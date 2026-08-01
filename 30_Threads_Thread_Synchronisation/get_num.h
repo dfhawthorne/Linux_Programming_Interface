@@ -1,1 +1,0 @@
-../03_System_Programming_Concepts/get_num.h

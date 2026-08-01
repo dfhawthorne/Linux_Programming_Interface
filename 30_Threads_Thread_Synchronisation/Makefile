@@ -5,13 +5,15 @@
 # ------------------------------------------------------------------------------
 
 UNAME_S := $(shell uname -s)
+INC_DIR := ../03_System_Programming_Concepts
+LIB_DIR := ../Shared_Libraries
 CC      ?= gcc
 CSTD    ?= -std=c17
 WARN    ?= -Wall -Wextra -Wpedantic -Wimplicit-fallthrough
 OPT     ?= -O2
 THREADS ?= -pthread -D_REENTRANT
 
-MY_CFLAGS := $(CSTD) $(WARN) $(OPT) $(THREADS) -D_GNU_SOURCE
+MY_CFLAGS := $(CSTD) $(WARN) $(OPT) $(THREADS) -D_GNU_SOURCE -I$(INC_DIR)
 
 CFLAGS  += $(MY_CFLAGS)
 
@@ -34,8 +36,8 @@ test_1: thread_incr
 test_2: Ex_2
 	./Ex_2
 
-thread_incr: thread_incr.c error_functions.c get_num.c
-	$(CC) $(CFLAGS) $^ -o $@
+thread_incr: thread_incr.c
+	$(CC) $(CFLAGS) $^ -L$(LIB_DIR) -ltlpi_base -o $@
 
 %: %.c
 	$(CC) $(CFLAGS) $^ -o $@
