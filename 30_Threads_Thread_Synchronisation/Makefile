@@ -37,7 +37,7 @@ test_2: Ex_2
 	./Ex_2
 
 thread_incr: thread_incr.c
-	$(CC) $(CFLAGS) $^ -L$(LIB_DIR) -ltlpi_base -o $@
+	$(CC) $(CFLAGS) $^ -L$(LIB_DIR) -ltlpi_base -o $@ 
 
 %: %.c
 	$(CC) $(CFLAGS) $^ -o $@
