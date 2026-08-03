@@ -7,10 +7,10 @@ CFLAGS = -Wall -Wextra -O2 -fPIC -I$(INCDIR)
 
 .PHONY: all
 
-all: tlpi_base.so
+all: libtlpi_base.so
 
 %.o: $(SRCDIR)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-tlpi_base.so: error_functions.o get_num.o alt_functions.o
+libtlpi_base.so: error_functions.o get_num.o alt_functions.o
 	$(CC) -shared -o $@ $^
