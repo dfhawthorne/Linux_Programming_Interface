@@ -12,6 +12,7 @@ This document records design decisions made during the solution of Exercise 30-2
   * [Inter-Nodal Hierarchy](#inter-nodal-hierarchy)
   * [Intra-Nodal Hierarchy](#intra-nodal-hierarchy)
 * [Error Handling](#error-handling)
+  * [System Errors](#system-errors)
 
 ## Naming Conventions
 
@@ -62,7 +63,6 @@ These return values will use the standard values from `errno`:
 | Symbolic Error Name | ERRNO | Meaning | Comments |
 | --- | ---: | --- | --- |
 | ENOENT | 2 | No such file or directory | Closest fit for `utree_destroy()` not finding the key in the tree |
-| ENOMEM | 12 | Cannot allocate memory | |
 | EEXIST | 17 | File exists | Closest fit for `utree_add()` finding the key already in the tree. |
 | EINVAL | 22 | Invalid argument | Used for checking argument to function calls |
 | ENOSYS | 38 | Function not implemented | Used during library development |
@@ -73,3 +73,12 @@ __NOTE__: `ENOENT` and `EEXIST` references _file_ instead of _key_.
 __NOTE__: Since this is a quick and dirty implementation, I will use the
 standard `errno` values, instead of creating a bespoke error list and
 associated functions, such as a `strerror` equivalent.
+
+__NOTE__: `ENOMEM` (12) was removed from the list of available return values
+because the underlying issue should be treated as a system error, not an
+application one.
+
+### System Errors
+
+Any system error will cause the program to abort. I will __not__ implement
+any clean up and retry in order to keep the library implementation simple.
