@@ -36,6 +36,9 @@ void test_case_1(void) {
     rc = utree_add(NULL, (void *)key, NULL);
     if (rc != EINVAL)
         error(EXIT_FAILURE, rc, "Unexpected RC from utree_add(NULL, key, NULL)");
+    rc = utree_add(NULL, (void *)"", NULL);
+    if (rc != EINVAL)
+        error(EXIT_FAILURE, rc, "Unexpected RC from utree_add(NULL, """", NULL)");
     rc = utree_add(NULL, NULL, (void *)value);
     if (rc != EINVAL)
         error(EXIT_FAILURE, rc, "Unexpected RC from utree_add(NULL, NULL, value)");
@@ -45,6 +48,9 @@ void test_case_1(void) {
     rc = utree_add(root_p, (void *)key, NULL);
     if (rc != EINVAL)
         error(EXIT_FAILURE, rc, "Unexpected RC from utree_add(root_p, key, NULL)");
+    rc = utree_add(root_p, (void *)"", NULL);
+    if (rc != EINVAL)
+        error(EXIT_FAILURE, rc, "Unexpected RC from utree_add(root_p, """", NULL)");
     rc = utree_add(root_p, NULL, (void *)value);
     if (rc != EINVAL)
         error(EXIT_FAILURE, rc, "Unexpected RC from utree_add(root_p, NULL, value)");
@@ -57,6 +63,9 @@ void test_case_1(void) {
     rc = utree_delete(NULL, (void *)key);
     if (rc != EINVAL)
         error(EXIT_FAILURE, rc, "Unexpected RC from utree_delete(NULL, key)");
+    rc = utree_delete(NULL, (void *)"");
+    if (rc != EINVAL)
+        error(EXIT_FAILURE, rc, "Unexpected RC from utree_delete(NULL, """")");
 }
 
 // -----------------------------------------------------------------------------

@@ -84,13 +84,19 @@ All of the following calls should fail with `EINVAL`:
 1. `utree_initialise(NULL)`
 1. `utree_add(NULL, NULL, NULL)`
 1. `utree_add(NULL, key, NULL)`
+1. `utree_add(NULL, "", NULL)`
 1. `utree_add(NULL, NULL, value)`
 1. `utree_add(root_p, NULL, NULL)`
 1. `utree_add(root_p, key, NULL)`
+1. `utree_add(root_p, "", NULL)`
 1. `utree_add(root_p, NULL, value)`
 1. `utree_delete(NULL, NULL)`
 1. `utree_delete(root_p, NULL)`
 1. `utree_delete(NULL, key)`
+1. `utree_delete(NULL, "")`
+
+__NOTE:__ An empty `key` is also considered an invalid argument, but empty
+`value` is permissible.
 
 ## Test Case #2: Searching Empty Trees
 

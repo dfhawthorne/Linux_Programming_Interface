@@ -58,15 +58,18 @@ int utree_initialise(tree_ptr_t root) {
 }
 
 int utree_add(tree_ptr_t root, char *key, void *value) {
-    (void)root;
-    (void)key;
-    (void)value;
+
+    if (root == NULL || key == NULL || value == NULL || strlen(key) == 0)
+        return EINVAL;
+
     return ENOSYS;
 }
 
 int utree_delete(tree_ptr_t root, char *key) {
-    (void)root;
-    (void)key;
+
+    if (root == NULL || key == NULL || strlen(key) == 0)
+        return EINVAL;
+
     return ENOSYS;
 }
 
