@@ -104,3 +104,8 @@ __NOTE:__ An empty `key` is also considered an invalid argument, but empty
 
 An empty tree is created, then three (3) threads are created to search for three
 (3) keys each. Each call should return value as a `NULL` pointer.
+
+## Test Case #3: Deleting a Node From an Empty Tree
+
+An empty tree is created, then three (3) threads are created to delete three (3)
+keys each. Each call should suceed.

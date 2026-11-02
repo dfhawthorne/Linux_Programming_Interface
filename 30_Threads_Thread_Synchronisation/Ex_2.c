@@ -5,6 +5,8 @@
 // binary tree.
 // -----------------------------------------------------------------------------
 
+// #define VERBOSE
+
 #include <errno.h>
 #include <error.h>
 #include <pthread.h>
@@ -14,7 +16,9 @@
 
 #include "unbalanced_tree.h"
 #define MAX_KEY_LEN 16
+#define MAX_VALUE_LEN 32
 #define MAX_NUM_KEYS 3
+#define TOTAL_NUM_KEYS 9
 #define NUM_THDS 3
 #define NUM_KEYS 3
 
@@ -30,16 +34,37 @@ typedef struct search_args {
     int num_keys, num_found;
 } search_args_t;
 
+typedef struct data_dict {
+    char keys[TOTAL_NUM_KEYS][MAX_KEY_LEN+1];
+    char values[TOTAL_NUM_KEYS][MAX_VALUE_LEN+1];
+} data_dict_t;
+
+typedef struct search_results {
+    int num_searched, num_found, num_matched;
+} search_results_t, *search_results_p;
+
 // -----------------------------------------------------------------------------
 // Global variables
 // -----------------------------------------------------------------------------
 
 static tree_t root;
-static int verbose = 1;
+static data_dict_t data_dict = {
+    .keys   = {"Apple", "Banana", "Cat", "Diamond", "Echo", "Fox", "Golf"},
+    .values = {"Fruit", "Berry", "Animal", "Mineral", "Sound", "Animal", "Game"}
+};
 
 // -----------------------------------------------------------------------------
 // Ancilliary functions for test harnass
 // -----------------------------------------------------------------------------
+
+static char *lookup_dict(char *key) {
+    if (key == NULL) return NULL;
+    for (int i; i < TOTAL_NUM_KEYS; i++) {
+        int cmp = strcmp(data_dict.keys[i], key);
+        if (cmp == 0) return data_dict.values[i];
+    }
+    return NULL;
+}
 
 static void *search_keys(void *arg) {
     search_args_t *arg_ptr = (search_args_t *) arg;
@@ -48,18 +73,22 @@ static void *search_keys(void *arg) {
 
     arg_ptr -> num_found = 0;
 
-    if (verbose)
-        printf("search_keys: thread #%d started:\n\troot_ptr=%p\n",
-            arg_ptr -> thread_number,
-            (void *)arg_ptr -> root_p);
+    #ifdef VERBOSE
+    printf("search_keys: thread #%d started:\n\troot_ptr=%p\n",
+        arg_ptr -> thread_number,
+        (void *)arg_ptr -> root_p);
+    #endif
 
     for (j = 0; j < arg_ptr -> num_keys; j++) {
-        if (verbose)
-            printf(
-                "Thread #%d is searching for \"%s\"\n",
-                arg_ptr -> thread_number,
-                arg_ptr -> keys[j]
-            );
+
+        #ifdef VERBOSE 
+        printf(
+            "Thread #%d is searching for \"%s\"\n",
+            arg_ptr -> thread_number,
+            arg_ptr -> keys[j]
+        );
+        #endif
+
         found = utree_lookup(
             arg_ptr -> root_p,
             (void *)arg_ptr -> keys[j],
@@ -67,23 +96,30 @@ static void *search_keys(void *arg) {
         );
         if (found) {
             arg_ptr -> num_found++;
-            if (verbose)
-                printf("search_keys: thread #%d key '%s' was %sfound\n",
-                    arg_ptr -> thread_number,
-                    arg_ptr -> keys[j],
-                    (found?"":"not ")
-                );
+
+            #ifdef VERBOSE
+            printf("search_keys: thread #%d key '%s' was %sfound\n",
+                arg_ptr -> thread_number,
+                arg_ptr -> keys[j],
+                (found?"":"not ")
+            );
+            #endif
         }
     }
 
     return NULL;
 }
 
-int search_tree_3_thds(tree_t *root_p) {
+search_results_t search_tree_3_thds(tree_t *root_p) {
+    search_results_t results = {
+        .num_found = 0,
+        .num_matched = 0,
+        .num_searched = 0
+    };
     pthread_t threads[NUM_THDS];
     int thd_idx = 0;
     int line_num = 0;
-    int num_found = 0;
+
     search_args_t args[NUM_THDS] = {
         { 
             .thread_number = 0, 
@@ -97,14 +133,14 @@ int search_tree_3_thds(tree_t *root_p) {
             .root_p = root_p, 
             .num_keys = NUM_KEYS,
             .keys = { "Diamond", "Echo", "Fox" },
-            .num_found = 0 
+            .num_found = 0
         },
         { 
             .thread_number = 2, 
             .root_p = root_p, 
             .num_keys = NUM_KEYS,
             .keys = { "Golf", "Banana", "Fox" },
-            .num_found = 0 
+            .num_found = 0
         }
     };
 
@@ -134,10 +170,12 @@ int search_tree_3_thds(tree_t *root_p) {
                 "Unable to create thread #%d",
                 thd_idx
             );
-        } else {
-            if (verbose)
-                printf("search_tree_3_thds: thread #%d created successfully\n", thd_idx);
+        } 
+        #ifdef VERBOSE
+        else {
+            printf("search_tree_3_thds: thread #%d created successfully\n", thd_idx);
         }
+        #endif
     }
 
     for (thd_idx = 0; thd_idx < NUM_THDS; thd_idx++) {
@@ -157,14 +195,21 @@ int search_tree_3_thds(tree_t *root_p) {
                 "Unable to join thread #%d",
                 thd_idx
             );
-        num_found += args[thd_idx].num_found;
+        results.num_found += args[thd_idx].num_found;
+        results.num_searched += NUM_KEYS;
         for (int idx = 0; idx < NUM_KEYS; idx++) {
-            if (args[thd_idx].values[idx] != NULL)
-              free(args[thd_idx].values[idx]);
+            if (args[thd_idx].values[idx] != NULL) {
+                char *dict_value = lookup_dict(args[thd_idx].keys[idx]);
+                if (dict_value != NULL) {
+                    int cmp = strcmp(args[thd_idx].values[idx],dict_value);
+                    if (cmp == 0) results.num_matched++;
+                }
+                free(args[thd_idx].values[idx]);
+            }
         }
     }
     
-    return num_found;
+    return results;
 }
 
 // -----------------------------------------------------------------------------
@@ -222,9 +267,9 @@ void test_case_1(void) {
 // -----------------------------------------------------------------------------
 
 void test_case_2(tree_t *root_p) {
-    int num_found = search_tree_3_thds(root_p);
-    if (num_found != 0) {
-        fprintf(stderr, "Tree search found %d results. Expected 0.\n", num_found);
+    search_results_t results = search_tree_3_thds(root_p);
+    if (results.num_found != 0) {
+        fprintf(stderr, "Tree search found %d results. Expected 0.\n", results.num_found);
         exit(EXIT_FAILURE);
     }
 }

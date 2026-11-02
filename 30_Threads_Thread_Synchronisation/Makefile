@@ -21,6 +21,7 @@ RUN_ARGS :=
 
 ifeq ($(VERBOSE),1)
 RUN_ARGS += -v
+CFLAGS += -DVERBOSE
 endif
 
 
