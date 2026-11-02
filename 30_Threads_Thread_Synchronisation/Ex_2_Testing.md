@@ -10,6 +10,8 @@ library.
 - [Test Data](#test-data)
 - [Test Trees](#test-trees)
   - [Balanced Tree](#balanced-tree)
+  - [Left-Skewed Binary Tree](#left-skewed-binary-tree)
+  - [Right-Skewed Binary Tree](#right-skewed-binary-tree)
 - [Test Case #1: Argument Validation](#test-case-1-argument-validation)
 - [Test Case #2: Searching Empty Trees](#test-case-2-searching-empty-trees)
 
@@ -100,5 +102,5 @@ __NOTE:__ An empty `key` is also considered an invalid argument, but empty
 
 ## Test Case #2: Searching Empty Trees
 
-An empty tree is created, then three (3) threads are created to search for two
-keys each. Each call should return value as a `NULL` pointer.
+An empty tree is created, then three (3) threads are created to search for three
+(3) keys each. Each call should return value as a `NULL` pointer.

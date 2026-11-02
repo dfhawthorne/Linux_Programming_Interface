@@ -4,8 +4,8 @@
 #include <pthread.h>
 
 typedef enum {
-    TRUE,
-    FALSE
+    FALSE,
+    TRUE
 } Boolean;
 
 typedef struct tree {

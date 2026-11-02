@@ -2,8 +2,14 @@
 // Implements unbalanced tree for Exercise 30-2
 // -----------------------------------------------------------------------------
 
+// #define VERBOSE
+
 #include <errno.h>
 #include <error.h>
+#include <pthread.h>
+#ifdef VERBOSE
+#include <stdio.h>
+#endif
 #include <stdlib.h>
 #include <string.h>
 #include "unbalanced_tree.h"
@@ -12,7 +18,7 @@
 // Support functions
 // -----------------------------------------------------------------------------
 
-#define ERR_MSG_FMT ": %s (line: %d)\n"
+#define ERR_MSG_FMT "%s (line: %d)"
 
 int _init_node(tree_ptr_t node) {
     int rc, line_num;
@@ -36,7 +42,7 @@ int _init_node(tree_ptr_t node) {
         error(EXIT_FAILURE, rc, ERR_MSG_FMT, __FILE__, line_num);
     }
     line_num = __LINE__ + 1;
-    rc = pthread_mutex_init(&node -> node_mutex, &mtx_attr);
+    rc = pthread_mutex_init(&(node -> node_mutex), &mtx_attr);
     if (rc != 0) {
         error(EXIT_FAILURE, rc, ERR_MSG_FMT, __FILE__, line_num);
     }
@@ -78,24 +84,43 @@ Boolean utree_lookup(tree_ptr_t root, char *key, void **value) {
     tree_ptr_t parent, child, node;
     Boolean result;
 
-    if (root == NULL || key == NULL || strlen(key) == 0) {
-        value = NULL;
+    if (root == NULL || key == NULL || strlen(key) == 0 || value == NULL) {
+        if (value != NULL)
+           *value = NULL;
         return FALSE;
     }
 
     for (parent = NULL, child = root; ;) {
         line_num = __LINE__ + 1;
-        rc = pthread_mutex_lock(&child -> node_mutex);
+        rc = pthread_mutex_lock(&(child -> node_mutex));
         if (rc != 0) {
             error(EXIT_FAILURE, rc, ERR_MSG_FMT, __FILE__, line_num);
         }
+
+        #ifdef VERBOSE
+        printf("utree_lookup: locked CHILD MUTEX at %p\n", (void *)&(child -> node_mutex));
+        #endif
+
         if (parent != NULL) {
             line_num = __LINE__ + 1;
-            rc = pthread_mutex_unlock(&parent -> node_mutex);
+            rc = pthread_mutex_unlock(&(parent -> node_mutex));
             if (rc != 0) {
                 error(EXIT_FAILURE, rc, ERR_MSG_FMT, __FILE__, line_num);
             }
+
+            #ifdef VERBOSE
+            printf("utree_lookup: released PARENT MUTEX at %p\n", (void *)&(parent -> node_mutex));
+            #endif
+
         }
+
+        if (child -> key == NULL) {
+            if (value != NULL)
+                *value = NULL;
+            result = FALSE;
+            break;
+        }
+
         key_cmp = strcmp(child -> key, key);
         if (key_cmp == 0) {
             if (child -> value != NULL) {
@@ -116,7 +141,7 @@ Boolean utree_lookup(tree_ptr_t root, char *key, void **value) {
 
         if (key_cmp < 0) {
             if (child -> left == NULL) {
-                value = NULL;
+                *value = NULL;
                 result = FALSE;
                 break;
             } else {
@@ -126,7 +151,7 @@ Boolean utree_lookup(tree_ptr_t root, char *key, void **value) {
             }
         } else {
             if (child -> right == NULL) {
-                value = NULL;
+                *value = NULL;
                 result = FALSE;
                 break;
             } else {
@@ -138,16 +163,25 @@ Boolean utree_lookup(tree_ptr_t root, char *key, void **value) {
     }
 
     line_num = __LINE__ + 1;
-    rc = pthread_mutex_unlock(&child -> node_mutex);
+    rc = pthread_mutex_unlock(&(child -> node_mutex));
     if (rc != 0) {
         error(EXIT_FAILURE, rc, ERR_MSG_FMT, __FILE__, line_num);
     }
+
+    #ifdef VERBOSE
+    printf("utree_lookup: released CHILD MUTEX at %p\n", (void *)&(child -> node_mutex));
+    #endif
+
     if (parent != NULL) {
         line_num = __LINE__ + 1;
-        rc = pthread_mutex_unlock(&parent -> node_mutex);
+        rc = pthread_mutex_unlock(&(parent -> node_mutex));
         if (rc != 0) {
             error(EXIT_FAILURE, rc, ERR_MSG_FMT, __FILE__, line_num);
         }
+
+        #ifdef VERBOSE
+        printf("utree_lookup: released PARENT MUTEX at %p\n", (void *)&(parent -> node_mutex));
+        #endif
     }
 
     return result;

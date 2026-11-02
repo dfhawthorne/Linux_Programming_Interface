@@ -7,16 +7,165 @@
 
 #include <errno.h>
 #include <error.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "unbalanced_tree.h"
+#define MAX_KEY_LEN 16
+#define MAX_NUM_KEYS 3
+#define NUM_THDS 3
+#define NUM_KEYS 3
+
+// -----------------------------------------------------------------------------
+// Types
+// -----------------------------------------------------------------------------
+
+typedef struct search_args {
+    int thread_number;
+    tree_t *root_p;
+    char keys[MAX_NUM_KEYS][MAX_KEY_LEN+1];
+    char *values[MAX_NUM_KEYS];
+    int num_keys, num_found;
+} search_args_t;
+
+// -----------------------------------------------------------------------------
+// Global variables
+// -----------------------------------------------------------------------------
 
 static tree_t root;
+static int verbose = 1;
 
 // -----------------------------------------------------------------------------
 // Ancilliary functions for test harnass
 // -----------------------------------------------------------------------------
+
+static void *search_keys(void *arg) {
+    search_args_t *arg_ptr = (search_args_t *) arg;
+    int j;
+    Boolean found;
+
+    arg_ptr -> num_found = 0;
+
+    if (verbose)
+        printf("search_keys: thread #%d started:\n\troot_ptr=%p\n",
+            arg_ptr -> thread_number,
+            (void *)arg_ptr -> root_p);
+
+    for (j = 0; j < arg_ptr -> num_keys; j++) {
+        if (verbose)
+            printf(
+                "Thread #%d is searching for \"%s\"\n",
+                arg_ptr -> thread_number,
+                arg_ptr -> keys[j]
+            );
+        found = utree_lookup(
+            arg_ptr -> root_p,
+            (void *)arg_ptr -> keys[j],
+            (void *)&(arg_ptr -> values[j])
+        );
+        if (found) {
+            arg_ptr -> num_found++;
+            if (verbose)
+                printf("search_keys: thread #%d key '%s' was %sfound\n",
+                    arg_ptr -> thread_number,
+                    arg_ptr -> keys[j],
+                    (found?"":"not ")
+                );
+        }
+    }
+
+    return NULL;
+}
+
+int search_tree_3_thds(tree_t *root_p) {
+    pthread_t threads[NUM_THDS];
+    int thd_idx = 0;
+    int line_num = 0;
+    int num_found = 0;
+    search_args_t args[NUM_THDS] = {
+        { 
+            .thread_number = 0, 
+            .root_p = root_p, 
+            .num_keys = NUM_KEYS,
+            .keys = { "Apple", "Banana", "Cat" },
+            .num_found = 0
+        },
+        { 
+            .thread_number = 1, 
+            .root_p = root_p, 
+            .num_keys = NUM_KEYS,
+            .keys = { "Diamond", "Echo", "Fox" },
+            .num_found = 0 
+        },
+        { 
+            .thread_number = 2, 
+            .root_p = root_p, 
+            .num_keys = NUM_KEYS,
+            .keys = { "Golf", "Banana", "Fox" },
+            .num_found = 0 
+        }
+    };
+
+    for (thd_idx = 0; thd_idx < NUM_THDS; thd_idx++) {
+        int rc;
+
+        memset(args[thd_idx].values, 0, NUM_KEYS * sizeof(char *));
+        line_num = __LINE__ + 1;
+        rc = pthread_create(
+            &threads[thd_idx], 
+            NULL, 
+            search_keys, 
+            &args[thd_idx]
+        );
+        if (rc) {
+            for (int j = 0; j < thd_idx; j++) {
+                pthread_join(
+                    threads[j],
+                    NULL
+                );
+            }
+            error_at_line(
+                EXIT_FAILURE,
+                rc,
+                __FILE__,
+                line_num,
+                "Unable to create thread #%d",
+                thd_idx
+            );
+        } else {
+            if (verbose)
+                printf("search_tree_3_thds: thread #%d created successfully\n", thd_idx);
+        }
+    }
+
+    for (thd_idx = 0; thd_idx < NUM_THDS; thd_idx++) {
+        int rc;
+
+        line_num = __LINE__ + 1;
+        rc = pthread_join(
+            threads[thd_idx],
+            NULL
+        );
+        if (rc)
+            error_at_line(
+                EXIT_FAILURE,
+                rc,
+                __FILE__,
+                line_num,
+                "Unable to join thread #%d",
+                thd_idx
+            );
+        num_found += args[thd_idx].num_found;
+        for (int idx = 0; idx < NUM_KEYS; idx++) {
+            if (args[thd_idx].values[idx] != NULL)
+              free(args[thd_idx].values[idx]);
+        }
+    }
+    
+    return num_found;
+}
 
 // -----------------------------------------------------------------------------
 // Test Case #1: Argument Validation
@@ -69,6 +218,18 @@ void test_case_1(void) {
 }
 
 // -----------------------------------------------------------------------------
+// Test Case #2: Searching Empty Trees
+// -----------------------------------------------------------------------------
+
+void test_case_2(tree_t *root_p) {
+    int num_found = search_tree_3_thds(root_p);
+    if (num_found != 0) {
+        fprintf(stderr, "Tree search found %d results. Expected 0.\n", num_found);
+        exit(EXIT_FAILURE);
+    }
+}
+
+// -----------------------------------------------------------------------------
 // Main program
 // -----------------------------------------------------------------------------
 
@@ -90,6 +251,10 @@ int main() {
     printf("Test Case #1 (Argument Validation) started.\n");
     test_case_1();
     printf("Test Case #1 (Argument Validation) completed successfully.\n");
+    
+    printf("Test Case #2 (Searching Empty Trees) started.\n");
+    test_case_2(&root);
+    printf("Test Case #2 (Searching Empty Trees) completed successfully.\n");
     
     exit(EXIT_SUCCESS);
 }
