@@ -110,6 +110,49 @@ static void *search_keys(void *arg) {
     return NULL;
 }
 
+static void *delete_keys(void *arg) {
+    search_args_t *arg_ptr = (search_args_t *) arg;
+    int j;
+    Boolean found;
+
+    arg_ptr -> num_found = 0;
+
+    #ifdef VERBOSE
+    printf("delete_keys: thread #%d started:\n\troot_ptr=%p\n",
+        arg_ptr -> thread_number,
+        (void *)arg_ptr -> root_p);
+    #endif
+
+    for (j = 0; j < arg_ptr -> num_keys; j++) {
+
+        #ifdef VERBOSE 
+        printf(
+            "Thread #%d is searching for \"%s\"\n",
+            arg_ptr -> thread_number,
+            arg_ptr -> keys[j]
+        );
+        #endif
+
+        found = utree_delete(
+            arg_ptr -> root_p,
+            (void *)arg_ptr -> keys[j]
+        );
+        if (found) {
+            arg_ptr -> num_found++;
+
+            #ifdef VERBOSE
+            printf("delete_keys: thread #%d key '%s' was %sfound\n",
+                arg_ptr -> thread_number,
+                arg_ptr -> keys[j],
+                (found?"":"not ")
+            );
+            #endif
+        }
+    }
+
+    return NULL;
+}
+
 search_results_t search_tree_3_thds(tree_t *root_p) {
     search_results_t results = {
         .num_found = 0,
@@ -212,6 +255,98 @@ search_results_t search_tree_3_thds(tree_t *root_p) {
     return results;
 }
 
+search_results_t delete_tree_3_thds(tree_t *root_p) {
+    search_results_t results = {
+        .num_found = 0,
+        .num_matched = 0,
+        .num_searched = 0
+    };
+    pthread_t threads[NUM_THDS];
+    int thd_idx = 0;
+    int line_num = 0;
+
+    search_args_t args[NUM_THDS] = {
+        { 
+            .thread_number = 0, 
+            .root_p = root_p, 
+            .num_keys = NUM_KEYS,
+            .keys = { "Apple", "Banana", "Cat" },
+            .num_found = 0
+        },
+        { 
+            .thread_number = 1, 
+            .root_p = root_p, 
+            .num_keys = NUM_KEYS,
+            .keys = { "Diamond", "Echo", "Fox" },
+            .num_found = 0
+        },
+        { 
+            .thread_number = 2, 
+            .root_p = root_p, 
+            .num_keys = NUM_KEYS,
+            .keys = { "Golf", "Banana", "Fox" },
+            .num_found = 0
+        }
+    };
+
+    for (thd_idx = 0; thd_idx < NUM_THDS; thd_idx++) {
+        int rc;
+
+        memset(args[thd_idx].values, 0, NUM_KEYS * sizeof(char *));
+        line_num = __LINE__ + 1;
+        rc = pthread_create(
+            &threads[thd_idx], 
+            NULL, 
+            delete_keys, 
+            &args[thd_idx]
+        );
+        if (rc) {
+            for (int j = 0; j < thd_idx; j++) {
+                pthread_join(
+                    threads[j],
+                    NULL
+                );
+            }
+            error_at_line(
+                EXIT_FAILURE,
+                rc,
+                __FILE__,
+                line_num,
+                "Unable to create thread #%d",
+                thd_idx
+            );
+        } 
+        #ifdef VERBOSE
+        else {
+            printf("search_tree_3_thds: thread #%d created successfully\n", thd_idx);
+        }
+        #endif
+    }
+
+    for (thd_idx = 0; thd_idx < NUM_THDS; thd_idx++) {
+        int rc;
+
+        line_num = __LINE__ + 1;
+        rc = pthread_join(
+            threads[thd_idx],
+            NULL
+        );
+        if (rc)
+            error_at_line(
+                EXIT_FAILURE,
+                rc,
+                __FILE__,
+                line_num,
+                "Unable to join thread #%d",
+                thd_idx
+            );
+        results.num_found += args[thd_idx].num_found;
+        results.num_searched += NUM_KEYS;
+    }
+    
+    return results;
+}
+
 // -----------------------------------------------------------------------------
 // Test Case #1: Argument Validation
 // -----------------------------------------------------------------------------
@@ -275,6 +410,18 @@ void test_case_2(tree_t *root_p) {
 }
 
 // -----------------------------------------------------------------------------
+// Test Case #3: Deleting Empty Trees
+// -----------------------------------------------------------------------------
+
+void test_case_3(tree_t *root_p) {
+    search_results_t results = delete_tree_3_thds(root_p);
+    if (results.num_found != 9) {
+        fprintf(stderr, "Tree search found %d results. Expected 9.\n", results.num_found);
+        exit(EXIT_FAILURE);
+    }
+}
+
+// -----------------------------------------------------------------------------
 // Main program
 // -----------------------------------------------------------------------------
 
@@ -300,6 +447,10 @@ int main() {
     printf("Test Case #2 (Searching Empty Trees) started.\n");
     test_case_2(&root);
     printf("Test Case #2 (Searching Empty Trees) completed successfully.\n");
+    
+    printf("Test Case #3 (Deleting Empty Trees) started.\n");
+    test_case_3(&root);
+    printf("Test Case #3 (Deleting Empty Trees) completed successfully.\n");
     
     exit(EXIT_SUCCESS);
 }
