@@ -109,3 +109,15 @@ An empty tree is created, then three (3) threads are created to search for three
 
 An empty tree is created, then three (3) threads are created to delete three (3)
 keys each. Each call should suceed.
+
+## Test Case #4: Balanced Tree
+
+Using the Balance Tree described above, this test case is divided into several
+sub-cases:
+
+1. Build Balanced Tree
+1. Search tree
+1. Search for non-existent key
+1. Insert duplicate key
+1. Delete then insert an existing key
+1. Delete all keys

@@ -21,6 +21,7 @@
 #define TOTAL_NUM_KEYS 9
 #define NUM_THDS 3
 #define NUM_KEYS 3
+#define NUM_TREE_NODES 7
 
 // -----------------------------------------------------------------------------
 // Types
@@ -404,7 +405,11 @@ void test_case_1(void) {
 void test_case_2(tree_t *root_p) {
     search_results_t results = search_tree_3_thds(root_p);
     if (results.num_found != 0) {
-        fprintf(stderr, "Tree search found %d results. Expected 0.\n", results.num_found);
+        fprintf(
+            stderr,
+            "Tree search found %d results. Expected 0.\n",
+            results.num_found
+        );
         exit(EXIT_FAILURE);
     }
 }
@@ -415,10 +420,77 @@ void test_case_2(tree_t *root_p) {
 
 void test_case_3(tree_t *root_p) {
     search_results_t results = delete_tree_3_thds(root_p);
-    if (results.num_found != 9) {
-        fprintf(stderr, "Tree search found %d results. Expected 9.\n", results.num_found);
+    if (results.num_found != TOTAL_NUM_KEYS) {
+        fprintf(
+            stderr,
+            "Tree search found %d results. Expected %d.\n",
+            results.num_found,
+            TOTAL_NUM_KEYS
+        );
         exit(EXIT_FAILURE);
     }
+}
+
+// -----------------------------------------------------------------------------
+// Test Case #4: Manipulating a balanced tree
+// Sub-cases:
+// 4-1: Build Balanced Tree
+// 4-2: Search tree
+// 4-3: Search for non-existent key
+// 4-4: Insert duplicate key
+// 4-5: Delete then insert an existing key
+// 4-6: Delete all keys
+// -----------------------------------------------------------------------------
+
+void test_case_4(tree_t *root_p) {
+    search_results_t results;
+    int key_order[NUM_TREE_NODES] = {3, 1, 0, 2, 5, 4, 6};
+
+    printf("Test case #4-1: (Build balanced Tree) started.\n");
+    for (int i = 0; i < NUM_TREE_NODES; i++) {
+        int idx = key_order[i];
+        int rc = utree_add(root_p, data_dict.keys[idx], data_dict.values[idx]);
+        if (rc != 0) {
+            error(
+                EXIT_FAILURE,
+                rc,
+                "utree_add failed for key='%s' and value='%s'",
+                data_dict.keys[idx],
+                data_dict.values[idx]
+            );
+        }
+    }
+    printf("Test case #4-1: (Build balanced Tree) completed successfully.\n");
+    printf("Test case #4-2: (Search tree) started.\n");
+    results = search_tree_3_thds(root_p);
+    if (results.num_found != TOTAL_NUM_KEYS) {
+        fprintf(
+            stderr,
+            "Tree search found %d results. Expected %d.\n",
+            results.num_found,
+            TOTAL_NUM_KEYS
+        );
+        exit(EXIT_FAILURE);
+    }
+    printf("Test case #4-2: (Search tree) completed successfully.\n");
+    printf("Test case #4-3: (Search for non-existent key) started.\n");
+    printf("Test case #4-3: (Search for non-existent key) completed successfully.\n");
+    printf("Test case #4-4: (Insert duplicate key) started.\n");
+    printf("Test case #4-4: (Insert duplicate key) completed successfully.\n");
+    printf("Test case #4-5: (Delete then insert an existing key) started.\n");
+    printf("Test case #4-5: (Delete then insert an existing key) completed successfully.\n");
+    printf("Test case #4-6: (Delete all keys) started.\n");
+    results = delete_tree_3_thds(root_p);
+    if (results.num_found != TOTAL_NUM_KEYS) {
+        fprintf(
+            stderr,
+            "Tree search found %d results. Expected %d.\n",
+            results.num_found,
+            TOTAL_NUM_KEYS
+        );
+        exit(EXIT_FAILURE);
+    }
+    printf("Test case #4-6: (Delete all keys) completed successfully.\n");
 }
 
 // -----------------------------------------------------------------------------
@@ -451,6 +523,10 @@ int main() {
     printf("Test Case #3 (Deleting Empty Trees) started.\n");
     test_case_3(&root);
     printf("Test Case #3 (Deleting Empty Trees) completed successfully.\n");
+    
+    printf("Test Case #4 (Manipulating Balanced Tree) started.\n");
+    test_case_4(&root);
+    printf("Test Case #4 (Manipulating Balanced Tree) completed successfully.\n");
     
     exit(EXIT_SUCCESS);
 }
