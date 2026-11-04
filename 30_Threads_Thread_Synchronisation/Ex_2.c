@@ -75,7 +75,7 @@ static void *search_keys(void *arg) {
     arg_ptr -> num_found = 0;
 
     #ifdef VERBOSE
-    printf("search_keys: thread #%d started:\n\troot_ptr=%p\n",
+    printf("search_keys: thread #%d started: root=%p\n",
         arg_ptr -> thread_number,
         (void *)arg_ptr -> root_p);
     #endif
@@ -95,18 +95,25 @@ static void *search_keys(void *arg) {
             (void *)arg_ptr -> keys[j],
             (void *)&(arg_ptr -> values[j])
         );
-        if (found) {
-            arg_ptr -> num_found++;
+        if (found) arg_ptr -> num_found++;
+        
+        #ifdef VERBOSE
+        printf("search_keys: thread #%d key '%s' was %sfound\n",
+            arg_ptr -> thread_number,
+            arg_ptr -> keys[j],
+            (found?"":"not ")
+        );
+        #endif
 
-            #ifdef VERBOSE
-            printf("search_keys: thread #%d key '%s' was %sfound\n",
-                arg_ptr -> thread_number,
-                arg_ptr -> keys[j],
-                (found?"":"not ")
-            );
-            #endif
-        }
     }
+
+    #ifdef VERBOSE
+    printf("search_keys: thread #%d completed: root=%p, num_found=%d\n",
+        arg_ptr -> thread_number,
+        (void *)arg_ptr -> root_p,
+        arg_ptr -> num_found
+    );
+    #endif
 
     return NULL;
 }
@@ -114,12 +121,11 @@ static void *search_keys(void *arg) {
 static void *delete_keys(void *arg) {
     search_args_t *arg_ptr = (search_args_t *) arg;
     int j;
-    Boolean found;
 
     arg_ptr -> num_found = 0;
 
     #ifdef VERBOSE
-    printf("delete_keys: thread #%d started:\n\troot_ptr=%p\n",
+    printf("delete_keys: thread #%d started: root=%p\n",
         arg_ptr -> thread_number,
         (void *)arg_ptr -> root_p);
     #endif
@@ -128,28 +134,42 @@ static void *delete_keys(void *arg) {
 
         #ifdef VERBOSE 
         printf(
-            "Thread #%d is searching for \"%s\"\n",
+            "Thread #%d is deleting \"%s\"\n",
             arg_ptr -> thread_number,
             arg_ptr -> keys[j]
         );
         #endif
 
-        found = utree_delete(
+        int rc = utree_delete(
             arg_ptr -> root_p,
             (void *)arg_ptr -> keys[j]
         );
-        if (found) {
+        if (rc == 0) {
             arg_ptr -> num_found++;
 
             #ifdef VERBOSE
-            printf("delete_keys: thread #%d key '%s' was %sfound\n",
+            printf("delete_keys: thread #%d key '%s' was deleted\n",
                 arg_ptr -> thread_number,
-                arg_ptr -> keys[j],
-                (found?"":"not ")
+                arg_ptr -> keys[j]
             );
             #endif
+        } else {
+            error(
+                EXIT_FAILURE,
+                rc,
+                "utree_delete failed for key='%s'",
+                arg_ptr -> keys[j]
+            );
         }
     }
+
+    #ifdef VERBOSE
+    printf("delete_keys: thread #%d completed: root=%p, num_found=%d\n",
+        arg_ptr -> thread_number,
+        (void *)arg_ptr -> root_p,
+        arg_ptr -> num_found
+    );
+    #endif
 
     return NULL;
 }
@@ -432,22 +452,19 @@ void test_case_3(tree_t *root_p) {
 }
 
 // -----------------------------------------------------------------------------
-// Test Case #4: Manipulating a balanced tree
+// Test Cases #4-6: Manipulating a balanced, left-skewed, and right-skewed tree
 // Sub-cases:
-// 4-1: Build Balanced Tree
-// 4-2: Search tree
-// 4-3: Search for non-existent key
-// 4-4: Insert duplicate key
-// 4-5: Delete then insert an existing key
-// 4-6: Delete all keys
+// ?-1: Build ?? Tree
+// ?-2: Search tree
+// ?-3: Search for non-existent key
+// ?-4: Insert duplicate key
+// ?-5: Delete then insert an existing key
+// ?-6: Delete all keys
 // -----------------------------------------------------------------------------
 
-void test_case_4(tree_t *root_p) {
-    search_results_t results;
-    int key_order[NUM_TREE_NODES] = {3, 1, 0, 2, 5, 4, 6};
-
-    printf("Test case #4-1: (Build balanced Tree) started.\n");
-    for (int i = 0; i < NUM_TREE_NODES; i++) {
+void build_tree(tree_t *root_p, int num_keys, int key_order[], int test_case_no, char *tree_type_str) {
+    printf("Test case #%d-1: (Build %s Tree) started.\n", test_case_no, tree_type_str);
+    for (int i = 0; i < num_keys; i++) {
         int idx = key_order[i];
         int rc = utree_add(root_p, data_dict.keys[idx], data_dict.values[idx]);
         if (rc != 0) {
@@ -460,8 +477,12 @@ void test_case_4(tree_t *root_p) {
             );
         }
     }
-    printf("Test case #4-1: (Build balanced Tree) completed successfully.\n");
-    printf("Test case #4-2: (Search tree) started.\n");
+    printf("Test case #%d-1: (Build %s Tree) completed successfully.\n", test_case_no, tree_type_str);
+}
+
+void test_case_for_tree(tree_t *root_p, int test_case_no) {
+    search_results_t results;
+    printf("Test case #%d-2: (Search tree) started.\n", test_case_no);
     results = search_tree_3_thds(root_p);
     if (results.num_found != TOTAL_NUM_KEYS) {
         fprintf(
@@ -472,14 +493,14 @@ void test_case_4(tree_t *root_p) {
         );
         exit(EXIT_FAILURE);
     }
-    printf("Test case #4-2: (Search tree) completed successfully.\n");
-    printf("Test case #4-3: (Search for non-existent key) started.\n");
-    printf("Test case #4-3: (Search for non-existent key) completed successfully.\n");
-    printf("Test case #4-4: (Insert duplicate key) started.\n");
-    printf("Test case #4-4: (Insert duplicate key) completed successfully.\n");
-    printf("Test case #4-5: (Delete then insert an existing key) started.\n");
-    printf("Test case #4-5: (Delete then insert an existing key) completed successfully.\n");
-    printf("Test case #4-6: (Delete all keys) started.\n");
+    printf("Test case #%d-2: (Search tree) completed successfully.\n", test_case_no);
+    printf("Test case #%d-3: (Search for non-existent key) started.\n", test_case_no);
+    printf("Test case #%d-3: (Search for non-existent key) completed successfully.\n", test_case_no);
+    printf("Test case #%d-4: (Insert duplicate key) started.\n", test_case_no);
+    printf("Test case #%d-4: (Insert duplicate key) completed successfully.\n", test_case_no);
+    printf("Test case #%d-5: (Delete then insert an existing key) started.\n", test_case_no);
+    printf("Test case #%d-5: (Delete then insert an existing key) completed successfully.\n", test_case_no);
+    printf("Test case #%d-6: (Delete all keys) started.\n", test_case_no);
     results = delete_tree_3_thds(root_p);
     if (results.num_found != TOTAL_NUM_KEYS) {
         fprintf(
@@ -490,7 +511,7 @@ void test_case_4(tree_t *root_p) {
         );
         exit(EXIT_FAILURE);
     }
-    printf("Test case #4-6: (Delete all keys) completed successfully.\n");
+    printf("Test case #%d-6: (Delete all keys) completed successfully.\n", test_case_no);
 }
 
 // -----------------------------------------------------------------------------
@@ -525,7 +546,9 @@ int main() {
     printf("Test Case #3 (Deleting Empty Trees) completed successfully.\n");
     
     printf("Test Case #4 (Manipulating Balanced Tree) started.\n");
-    test_case_4(&root);
+    int bal_key_order[NUM_TREE_NODES] = {3, 1, 0, 2, 5, 4, 6};
+    build_tree(&root, NUM_TREE_NODES, bal_key_order, 4, "balanced");
+    test_case_for_tree(&root, 4);
     printf("Test Case #4 (Manipulating Balanced Tree) completed successfully.\n");
     
     exit(EXIT_SUCCESS);
