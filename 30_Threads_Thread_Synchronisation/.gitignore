@@ -1,3 +1,5 @@
 thread_incr
 *.lst
+*.err
+unbalanced.c
 Ex_2

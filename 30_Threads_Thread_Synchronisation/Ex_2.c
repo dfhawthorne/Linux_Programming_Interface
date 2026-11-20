@@ -29,10 +29,11 @@
 
 typedef struct search_args {
     int thread_number;
-    tree_t *root_p;
+    tree_ptr_t root_p;
     char keys[MAX_NUM_KEYS][MAX_KEY_LEN+1];
-    char *values[MAX_NUM_KEYS];
-    int num_keys, num_found;
+    char *returned_values[MAX_NUM_KEYS];
+    char *expected_values[MAX_NUM_KEYS];
+    int num_keys, num_found, num_matched;
 } search_args_t;
 
 typedef struct data_dict {
@@ -53,16 +54,32 @@ static data_dict_t data_dict = {
     .keys   = {"Apple", "Banana", "Cat", "Diamond", "Echo", "Fox", "Golf"},
     .values = {"Fruit", "Berry", "Animal", "Mineral", "Sound", "Animal", "Game"}
 };
+static int bal_key_order[NUM_TREE_NODES] = {3, 1, 0, 2, 5, 4, 6};
+static int verbose = 0;
 
 // -----------------------------------------------------------------------------
 // Ancilliary functions for test harnass
 // -----------------------------------------------------------------------------
 
+
+static void print_dfs_node(const tree_t *node, size_t depth)
+{
+    if (!node)
+        return;
+
+    for (size_t i = 0; i < depth; ++i)
+        fputs("    ", stdout);
+
+    printf("%s\n", (node->key ? node->key : "(null)"));
+
+    print_dfs_node(node->left,  depth + 1);
+    print_dfs_node(node->right, depth + 1);
+}
+
 static char *lookup_dict(char *key) {
-    if (key == NULL) return NULL;
+    if (!key) return NULL;
     for (int i; i < TOTAL_NUM_KEYS; i++) {
-        int cmp = strcmp(data_dict.keys[i], key);
-        if (cmp == 0) return data_dict.values[i];
+        if (!strcmp(data_dict.keys[i], key)) return data_dict.values[i];
     }
     return NULL;
 }
@@ -74,46 +91,47 @@ static void *search_keys(void *arg) {
 
     arg_ptr -> num_found = 0;
 
-    #ifdef VERBOSE
-    printf("search_keys: thread #%d started: root=%p\n",
-        arg_ptr -> thread_number,
-        (void *)arg_ptr -> root_p);
-    #endif
+    if (verbose)
+        printf("search_keys: thread #%d started: root=%p\n",
+            arg_ptr -> thread_number,
+            (void *)arg_ptr -> root_p
+        );
 
     for (j = 0; j < arg_ptr -> num_keys; j++) {
 
-        #ifdef VERBOSE 
-        printf(
-            "Thread #%d is searching for \"%s\"\n",
-            arg_ptr -> thread_number,
-            arg_ptr -> keys[j]
-        );
-        #endif
+        if (verbose)
+            printf(
+                "Thread #%d is searching for \"%s\"\n",
+                arg_ptr -> thread_number,
+                arg_ptr -> keys[j]
+            );
 
         found = utree_lookup(
             arg_ptr -> root_p,
             (void *)arg_ptr -> keys[j],
-            (void *)&(arg_ptr -> values[j])
+            (void *)&(arg_ptr -> returned_values[j])
         );
-        if (found) arg_ptr -> num_found++;
+        if (found) {
+            arg_ptr -> num_found++;
+            if (!strcmp(arg_ptr -> returned_values[j], arg_ptr -> expected_values[j]))
+                arg_ptr -> num_matched++;
+        }
         
-        #ifdef VERBOSE
-        printf("search_keys: thread #%d key '%s' was %sfound\n",
-            arg_ptr -> thread_number,
-            arg_ptr -> keys[j],
-            (found?"":"not ")
-        );
-        #endif
+        if (verbose)
+            printf("search_keys: thread #%d key '%s' was %sfound\n",
+                arg_ptr -> thread_number,
+                arg_ptr -> keys[j],
+                (found?"":"not ")
+            );
 
     }
 
-    #ifdef VERBOSE
-    printf("search_keys: thread #%d completed: root=%p, num_found=%d\n",
-        arg_ptr -> thread_number,
-        (void *)arg_ptr -> root_p,
-        arg_ptr -> num_found
-    );
-    #endif
+    if (verbose)
+        printf("search_keys: thread #%d completed: root=%p, num_found=%d\n",
+            arg_ptr -> thread_number,
+            (void *)arg_ptr -> root_p,
+            arg_ptr -> num_found
+        );
 
     return NULL;
 }
@@ -124,35 +142,33 @@ static void *delete_keys(void *arg) {
 
     arg_ptr -> num_found = 0;
 
-    #ifdef VERBOSE
-    printf("delete_keys: thread #%d started: root=%p\n",
-        arg_ptr -> thread_number,
-        (void *)arg_ptr -> root_p);
-    #endif
+    if (verbose)
+        printf("delete_keys: thread #%d started: root=%p\n",
+            arg_ptr -> thread_number,
+            (void *)arg_ptr -> root_p
+        );
 
     for (j = 0; j < arg_ptr -> num_keys; j++) {
 
-        #ifdef VERBOSE 
-        printf(
-            "Thread #%d is deleting \"%s\"\n",
-            arg_ptr -> thread_number,
-            arg_ptr -> keys[j]
-        );
-        #endif
+        if (verbose)
+            printf(
+                "Thread #%d is deleting \"%s\"\n",
+                arg_ptr -> thread_number,
+                arg_ptr -> keys[j]
+            );
 
         int rc = utree_delete(
             arg_ptr -> root_p,
             (void *)arg_ptr -> keys[j]
         );
-        if (rc == 0) {
+        if (!rc) {
             arg_ptr -> num_found++;
 
-            #ifdef VERBOSE
-            printf("delete_keys: thread #%d key '%s' was deleted\n",
-                arg_ptr -> thread_number,
-                arg_ptr -> keys[j]
-            );
-            #endif
+            if (verbose)
+                printf("delete_keys: thread #%d key '%s' was deleted\n",
+                    arg_ptr -> thread_number,
+                    arg_ptr -> keys[j]
+                );
         } else {
             error(
                 EXIT_FAILURE,
@@ -163,18 +179,17 @@ static void *delete_keys(void *arg) {
         }
     }
 
-    #ifdef VERBOSE
-    printf("delete_keys: thread #%d completed: root=%p, num_found=%d\n",
-        arg_ptr -> thread_number,
-        (void *)arg_ptr -> root_p,
-        arg_ptr -> num_found
-    );
-    #endif
+    if (verbose)
+        printf("delete_keys: thread #%d completed: root=%p, num_found=%d\n",
+            arg_ptr -> thread_number,
+            (void *)arg_ptr -> root_p,
+            arg_ptr -> num_found
+        );
 
     return NULL;
 }
 
-search_results_t search_tree_3_thds(tree_t *root_p) {
+search_results_t search_tree_3_thds(tree_ptr_t root_p) {
     search_results_t results = {
         .num_found = 0,
         .num_matched = 0,
@@ -190,6 +205,8 @@ search_results_t search_tree_3_thds(tree_t *root_p) {
             .root_p = root_p, 
             .num_keys = NUM_KEYS,
             .keys = { "Apple", "Banana", "Cat" },
+            .expected_values = {data_dict.values[0], data_dict.values[1], data_dict.values[2]},
+            .num_matched = 0,
             .num_found = 0
         },
         { 
@@ -197,6 +214,8 @@ search_results_t search_tree_3_thds(tree_t *root_p) {
             .root_p = root_p, 
             .num_keys = NUM_KEYS,
             .keys = { "Diamond", "Echo", "Fox" },
+            .expected_values = {data_dict.values[3], data_dict.values[4], data_dict.values[5]},
+            .num_matched = 0,
             .num_found = 0
         },
         { 
@@ -204,6 +223,8 @@ search_results_t search_tree_3_thds(tree_t *root_p) {
             .root_p = root_p, 
             .num_keys = NUM_KEYS,
             .keys = { "Golf", "Banana", "Fox" },
+            .expected_values = {data_dict.values[6], data_dict.values[1], data_dict.values[5]},
+            .num_matched = 0,
             .num_found = 0
         }
     };
@@ -211,7 +232,7 @@ search_results_t search_tree_3_thds(tree_t *root_p) {
     for (thd_idx = 0; thd_idx < NUM_THDS; thd_idx++) {
         int rc;
 
-        memset(args[thd_idx].values, 0, NUM_KEYS * sizeof(char *));
+        memset(args[thd_idx].returned_values, 0, NUM_KEYS * sizeof(char *));
         line_num = __LINE__ + 1;
         rc = pthread_create(
             &threads[thd_idx], 
@@ -235,11 +256,13 @@ search_results_t search_tree_3_thds(tree_t *root_p) {
                 thd_idx
             );
         } 
-        #ifdef VERBOSE
         else {
-            printf("search_tree_3_thds: thread #%d created successfully\n", thd_idx);
+            if (verbose)
+                printf(
+                    "search_tree_3_thds: thread #%d created successfully\n",
+                    thd_idx
+                );
         }
-        #endif
     }
 
     for (thd_idx = 0; thd_idx < NUM_THDS; thd_idx++) {
@@ -260,15 +283,16 @@ search_results_t search_tree_3_thds(tree_t *root_p) {
                 thd_idx
             );
         results.num_found += args[thd_idx].num_found;
+        results.num_matched += args[thd_idx].num_matched;
         results.num_searched += NUM_KEYS;
         for (int idx = 0; idx < NUM_KEYS; idx++) {
-            if (args[thd_idx].values[idx] != NULL) {
+            if (args[thd_idx].returned_values[idx]) {
                 char *dict_value = lookup_dict(args[thd_idx].keys[idx]);
-                if (dict_value != NULL) {
-                    int cmp = strcmp(args[thd_idx].values[idx],dict_value);
-                    if (cmp == 0) results.num_matched++;
+                if (dict_value) {
+                    if (!strcmp(args[thd_idx].returned_values[idx],dict_value))
+                        results.num_matched++;
                 }
-                free(args[thd_idx].values[idx]);
+                free(args[thd_idx].returned_values[idx]);
             }
         }
     }
@@ -276,7 +300,7 @@ search_results_t search_tree_3_thds(tree_t *root_p) {
     return results;
 }
 
-search_results_t delete_tree_3_thds(tree_t *root_p) {
+search_results_t delete_tree_3_thds(tree_ptr_t root_p) {
     search_results_t results = {
         .num_found = 0,
         .num_matched = 0,
@@ -313,7 +337,7 @@ search_results_t delete_tree_3_thds(tree_t *root_p) {
     for (thd_idx = 0; thd_idx < NUM_THDS; thd_idx++) {
         int rc;
 
-        memset(args[thd_idx].values, 0, NUM_KEYS * sizeof(char *));
+        memset(args[thd_idx].returned_values, 0, NUM_KEYS * sizeof(char *));
         line_num = __LINE__ + 1;
         rc = pthread_create(
             &threads[thd_idx], 
@@ -337,11 +361,13 @@ search_results_t delete_tree_3_thds(tree_t *root_p) {
                 thd_idx
             );
         } 
-        #ifdef VERBOSE
         else {
-            printf("search_tree_3_thds: thread #%d created successfully\n", thd_idx);
+            if (verbose)
+                printf(
+                    "delete_tree_3_thds: thread #%d created successfully\n",
+                    thd_idx
+                );
         }
-        #endif
     }
 
     for (thd_idx = 0; thd_idx < NUM_THDS; thd_idx++) {
@@ -368,6 +394,90 @@ search_results_t delete_tree_3_thds(tree_t *root_p) {
     return results;
 }
 
+search_results_t search_tree(tree_ptr_t root_p, int num_keys, int key_order[]) {
+    search_results_t results = {
+        .num_found = 0,
+        .num_matched = 0,
+        .num_searched = 0
+    };
+    char *found_value;
+
+    for (int i = 0; i < num_keys; i++) {
+        results.num_searched++;
+        int idx = key_order[i];
+        if (verbose)
+            printf(
+                "search_tree: #%d key[%d]='%s'\n",
+                i,
+                idx,
+                data_dict.keys[idx]
+            );
+        Boolean found = utree_lookup(root_p, data_dict.keys[idx], (void *)&found_value);
+        if (found) {
+            results.num_found++;
+            if (strcmp(found_value, data_dict.values[idx]))
+                printf(
+                    "utree_lookup for key='%s' returned '%s' instead of '%s'\n",
+                    data_dict.keys[idx],
+                    found_value,
+                    data_dict.values[idx]
+                );
+            else
+                results.num_matched++;
+        } else 
+            printf(
+                "utree_lookup did not find key='%s'\n",
+                data_dict.keys[idx]
+            );
+    }
+
+    return results;
+}
+
+search_results_t delete_tree(tree_ptr_t root_p, int num_keys, int key_order[]) {
+    search_results_t results = {
+        .num_found = 0,
+        .num_matched = 0,
+        .num_searched = 0
+    };
+
+    if (verbose) {
+        printf(
+            "delete_tree: root_p=%p, num_keys=%d\n",
+            (void *)root_p,
+            num_keys
+        );
+        print_dfs_node(root_p, 0);
+    }
+
+    for (int i = 0; i < num_keys; i++) {
+        results.num_searched++;
+        int idx = key_order[i];
+        if (verbose)
+            printf(
+                "delete_tree: #%d key[%d]='%s'\n",
+                i,
+                idx,
+                data_dict.keys[idx]
+            );
+        int rc = utree_delete(root_p, data_dict.keys[idx]);
+        if (rc)
+            error(
+                EXIT_FAILURE,
+                rc,
+                "utree_delete failed for key='%s' and value='%s'",
+                data_dict.keys[idx],
+                data_dict.values[idx]
+            );
+        results.num_matched++;
+        results.num_found++;
+        if (verbose)
+            print_dfs_node(root_p, 0);
+    }
+
+    return results;
+}
+
 // -----------------------------------------------------------------------------
 // Test Case #1: Argument Validation
 // -----------------------------------------------------------------------------
@@ -375,7 +485,7 @@ search_results_t delete_tree_3_thds(tree_t *root_p) {
 void test_case_1(void) {
     int rc = 0;
     const char *key = "Zebra", *value = "Animal";
-    tree_t *root_p = &root;
+    tree_ptr_t root_p = &root;
 
     rc = utree_initialise(NULL);
     if (rc != EINVAL)
@@ -422,9 +532,9 @@ void test_case_1(void) {
 // Test Case #2: Searching Empty Trees
 // -----------------------------------------------------------------------------
 
-void test_case_2(tree_t *root_p) {
+void test_case_2(tree_ptr_t root_p) {
     search_results_t results = search_tree_3_thds(root_p);
-    if (results.num_found != 0) {
+    if (results.num_found) {
         fprintf(
             stderr,
             "Tree search found %d results. Expected 0.\n",
@@ -438,7 +548,19 @@ void test_case_2(tree_t *root_p) {
 // Test Case #3: Deleting Empty Trees
 // -----------------------------------------------------------------------------
 
-void test_case_3(tree_t *root_p) {
+void test_case_3(tree_ptr_t root_p) {
+    #ifdef UNTHREADED
+    search_results_t results = delete_tree(root_p, NUM_TREE_NODES, bal_key_order);
+    if (results.num_found != NUM_TREE_NODES) {
+        fprintf(
+            stderr,
+            "Tree search found %d results. Expected %d.\n",
+            results.num_found,
+            TOTAL_NUM_KEYS
+        );
+        exit(EXIT_FAILURE);
+    }
+    #else
     search_results_t results = delete_tree_3_thds(root_p);
     if (results.num_found != TOTAL_NUM_KEYS) {
         fprintf(
@@ -449,6 +571,7 @@ void test_case_3(tree_t *root_p) {
         );
         exit(EXIT_FAILURE);
     }
+    #endif
 }
 
 // -----------------------------------------------------------------------------
@@ -462,12 +585,12 @@ void test_case_3(tree_t *root_p) {
 // ?-6: Delete all keys
 // -----------------------------------------------------------------------------
 
-void build_tree(tree_t *root_p, int num_keys, int key_order[], int test_case_no, char *tree_type_str) {
+void build_tree(tree_ptr_t root_p, int num_keys, int key_order[], int test_case_no, char *tree_type_str) {
     printf("Test case #%d-1: (Build %s Tree) started.\n", test_case_no, tree_type_str);
     for (int i = 0; i < num_keys; i++) {
         int idx = key_order[i];
         int rc = utree_add(root_p, data_dict.keys[idx], data_dict.values[idx]);
-        if (rc != 0) {
+        if (rc) {
             error(
                 EXIT_FAILURE,
                 rc,
@@ -480,19 +603,34 @@ void build_tree(tree_t *root_p, int num_keys, int key_order[], int test_case_no,
     printf("Test case #%d-1: (Build %s Tree) completed successfully.\n", test_case_no, tree_type_str);
 }
 
-void test_case_for_tree(tree_t *root_p, int test_case_no) {
+void test_case_for_tree(tree_ptr_t root_p, int test_case_no) {
     search_results_t results;
     printf("Test case #%d-2: (Search tree) started.\n", test_case_no);
-    results = search_tree_3_thds(root_p);
-    if (results.num_found != TOTAL_NUM_KEYS) {
+
+    #ifdef UNTHREADED
+    results = search_tree(root_p, NUM_TREE_NODES, bal_key_order);
+    if (results.num_matched != NUM_TREE_NODES) {
         fprintf(
             stderr,
-            "Tree search found %d results. Expected %d.\n",
-            results.num_found,
+            "Tree search matched %d results. Expected %d.\n",
+            results.num_matched,
             TOTAL_NUM_KEYS
         );
         exit(EXIT_FAILURE);
     }
+    #else
+    results = search_tree_3_thds(root_p);
+    if (results.num_matched != TOTAL_NUM_KEYS) {
+        fprintf(
+            stderr,
+            "Tree search matched %d results. Expected %d.\n",
+            results.num_matched,
+            TOTAL_NUM_KEYS
+        );
+        exit(EXIT_FAILURE);
+    }
+    #endif
+
     printf("Test case #%d-2: (Search tree) completed successfully.\n", test_case_no);
     printf("Test case #%d-3: (Search for non-existent key) started.\n", test_case_no);
     printf("Test case #%d-3: (Search for non-existent key) completed successfully.\n", test_case_no);
@@ -501,16 +639,31 @@ void test_case_for_tree(tree_t *root_p, int test_case_no) {
     printf("Test case #%d-5: (Delete then insert an existing key) started.\n", test_case_no);
     printf("Test case #%d-5: (Delete then insert an existing key) completed successfully.\n", test_case_no);
     printf("Test case #%d-6: (Delete all keys) started.\n", test_case_no);
-    results = delete_tree_3_thds(root_p);
-    if (results.num_found != TOTAL_NUM_KEYS) {
+
+    #ifdef UNTHREADED
+    results = delete_tree(root_p, NUM_TREE_NODES, bal_key_order);
+    if (results.num_found != NUM_TREE_NODES) {
         fprintf(
             stderr,
-            "Tree search found %d results. Expected %d.\n",
+            "Tree deletion found %d results. Expected %d.\n",
             results.num_found,
             TOTAL_NUM_KEYS
         );
         exit(EXIT_FAILURE);
     }
+    #else
+    results = delete_tree_3_thds(root_p);
+    if (results.num_found != TOTAL_NUM_KEYS) {
+        fprintf(
+            stderr,
+            "Tree deletion found %d results. Expected %d.\n",
+            results.num_found,
+            TOTAL_NUM_KEYS
+        );
+        exit(EXIT_FAILURE);
+    }
+    #endif
+
     printf("Test case #%d-6: (Delete all keys) completed successfully.\n", test_case_no);
 }
 
@@ -518,9 +671,16 @@ void test_case_for_tree(tree_t *root_p, int test_case_no) {
 // Main program
 // -----------------------------------------------------------------------------
 
-int main() {
+int main(int argc, char *argv[]) {
     int line_num = 0;
     int rc = 0;
+
+    #ifdef VERBOSE
+    if (setvbuf(stdout, NULL, _IONBF, 0))
+        return EXIT_FAILURE;
+    #endif
+
+    if (argc > 1 && !strcmp(argv[1],"-v")) verbose = 1;
 
     line_num = __LINE__ + 1;
     rc = utree_initialise(&root);
@@ -546,7 +706,6 @@ int main() {
     printf("Test Case #3 (Deleting Empty Trees) completed successfully.\n");
     
     printf("Test Case #4 (Manipulating Balanced Tree) started.\n");
-    int bal_key_order[NUM_TREE_NODES] = {3, 1, 0, 2, 5, 4, 6};
     build_tree(&root, NUM_TREE_NODES, bal_key_order, 4, "balanced");
     test_case_for_tree(&root, 4);
     printf("Test Case #4 (Manipulating Balanced Tree) completed successfully.\n");

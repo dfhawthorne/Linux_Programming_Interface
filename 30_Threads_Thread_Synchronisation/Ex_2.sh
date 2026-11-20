@@ -9,4 +9,4 @@ if [[ -z "${LD_LIBRARY_PATH}" ]]
     else export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:.:../Shared_Libraries"
 fi
 
-./Ex_2
+./Ex_2 $*

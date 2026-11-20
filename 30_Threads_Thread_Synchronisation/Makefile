@@ -24,6 +24,10 @@ RUN_ARGS += -v
 CFLAGS += -DVERBOSE
 endif
 
+ifeq ($(UNTHREADED),1)
+CFLAGS += -DUNTHREADED
+endif
+
 
 # ------------------------------------------------------------------------------
 # All test cases
@@ -32,10 +36,10 @@ endif
 all: test_1 test_2
 
 test_1: thread_incr
-	./Ex_1.sh
+	./Ex_1.sh $(RUN_ARGS)
 
 test_2: Ex_2
-	./Ex_2.sh
+	./Ex_2.sh $(RUN_ARGS)
 
 thread_incr: thread_incr.c
 	$(CC) $(CFLAGS) -I$(INC_DIR) $^ -L$(LIB_DIR) -ltlpi_base -o $@ 
