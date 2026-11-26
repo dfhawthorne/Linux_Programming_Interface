@@ -6,6 +6,7 @@
 // -----------------------------------------------------------------------------
 
 // #define VERBOSE
+// #define UNTHREADED
 
 #include <errno.h>
 #include <error.h>
@@ -15,31 +16,11 @@
 #include <string.h>
 
 #include "unbalanced_tree.h"
-#define MAX_KEY_LEN 16
-#define MAX_VALUE_LEN 32
-#define MAX_NUM_KEYS 3
-#define TOTAL_NUM_KEYS 9
-#define NUM_THDS 3
-#define NUM_KEYS 3
-#define NUM_TREE_NODES 7
+#include "Ex_2.h"
 
 // -----------------------------------------------------------------------------
 // Types
 // -----------------------------------------------------------------------------
-
-typedef struct search_args {
-    int thread_number;
-    tree_ptr_t root_p;
-    char keys[MAX_NUM_KEYS][MAX_KEY_LEN+1];
-    char *returned_values[MAX_NUM_KEYS];
-    char *expected_values[MAX_NUM_KEYS];
-    int num_keys, num_found, num_matched;
-} search_args_t;
-
-typedef struct data_dict {
-    char keys[TOTAL_NUM_KEYS][MAX_KEY_LEN+1];
-    char values[TOTAL_NUM_KEYS][MAX_VALUE_LEN+1];
-} data_dict_t;
 
 typedef struct search_results {
     int num_searched, num_found, num_matched;
@@ -50,11 +31,7 @@ typedef struct search_results {
 // -----------------------------------------------------------------------------
 
 static tree_t root;
-static data_dict_t data_dict = {
-    .keys   = {"Apple", "Banana", "Cat", "Diamond", "Echo", "Fox", "Golf"},
-    .values = {"Fruit", "Berry", "Animal", "Mineral", "Sound", "Animal", "Game"}
-};
-static int bal_key_order[NUM_TREE_NODES] = {3, 1, 0, 2, 5, 4, 6};
+#include "Ex_2_test_data.c"
 static int verbose = 0;
 
 // -----------------------------------------------------------------------------
@@ -83,6 +60,10 @@ static char *lookup_dict(char *key) {
     }
     return NULL;
 }
+
+// -----------------------------------------------------------------------------
+// Thread function to search a binary tree
+// -----------------------------------------------------------------------------
 
 static void *search_keys(void *arg) {
     search_args_t *arg_ptr = (search_args_t *) arg;
@@ -135,6 +116,10 @@ static void *search_keys(void *arg) {
 
     return NULL;
 }
+
+// -----------------------------------------------------------------------------
+// Thread function to delete selected keys from a binary tree
+// -----------------------------------------------------------------------------
 
 static void *delete_keys(void *arg) {
     search_args_t *arg_ptr = (search_args_t *) arg;
@@ -189,7 +174,11 @@ static void *delete_keys(void *arg) {
     return NULL;
 }
 
-search_results_t search_tree_3_thds(tree_ptr_t root_p) {
+// -----------------------------------------------------------------------------
+// Driver to spawn threads to search a binary tree
+// -----------------------------------------------------------------------------
+
+search_results_t search_tree_3_thds(tree_ptr_t root_p, search_args_t *args) {
     search_results_t results = {
         .num_found = 0,
         .num_matched = 0,
@@ -199,38 +188,10 @@ search_results_t search_tree_3_thds(tree_ptr_t root_p) {
     int thd_idx = 0;
     int line_num = 0;
 
-    search_args_t args[NUM_THDS] = {
-        { 
-            .thread_number = 0, 
-            .root_p = root_p, 
-            .num_keys = NUM_KEYS,
-            .keys = { "Apple", "Banana", "Cat" },
-            .expected_values = {data_dict.values[0], data_dict.values[1], data_dict.values[2]},
-            .num_matched = 0,
-            .num_found = 0
-        },
-        { 
-            .thread_number = 1, 
-            .root_p = root_p, 
-            .num_keys = NUM_KEYS,
-            .keys = { "Diamond", "Echo", "Fox" },
-            .expected_values = {data_dict.values[3], data_dict.values[4], data_dict.values[5]},
-            .num_matched = 0,
-            .num_found = 0
-        },
-        { 
-            .thread_number = 2, 
-            .root_p = root_p, 
-            .num_keys = NUM_KEYS,
-            .keys = { "Golf", "Banana", "Fox" },
-            .expected_values = {data_dict.values[6], data_dict.values[1], data_dict.values[5]},
-            .num_matched = 0,
-            .num_found = 0
-        }
-    };
-
     for (thd_idx = 0; thd_idx < NUM_THDS; thd_idx++) {
         int rc;
+
+        args[thd_idx].root_p = root_p; 
 
         memset(args[thd_idx].returned_values, 0, NUM_KEYS * sizeof(char *));
         line_num = __LINE__ + 1;
@@ -299,6 +260,10 @@ search_results_t search_tree_3_thds(tree_ptr_t root_p) {
     
     return results;
 }
+
+// -----------------------------------------------------------------------------
+// Driver to spawn threads to delete selected keys from a binary tree
+// -----------------------------------------------------------------------------
 
 search_results_t delete_tree_3_thds(tree_ptr_t root_p) {
     search_results_t results = {
@@ -394,6 +359,11 @@ search_results_t delete_tree_3_thds(tree_ptr_t root_p) {
     return results;
 }
 
+// -----------------------------------------------------------------------------
+// Driver to search a binary tree in unthreaded mode.
+//   Used to test functionality without introducing problems with threading.
+// -----------------------------------------------------------------------------
+
 search_results_t search_tree(tree_ptr_t root_p, int num_keys, int key_order[]) {
     search_results_t results = {
         .num_found = 0,
@@ -433,6 +403,11 @@ search_results_t search_tree(tree_ptr_t root_p, int num_keys, int key_order[]) {
 
     return results;
 }
+
+// -----------------------------------------------------------------------------
+// Driver to delete selected keys from a binary tree in unthreaded mode.
+//   Used to test functionality without introducing problems with threading.
+// -----------------------------------------------------------------------------
 
 search_results_t delete_tree(tree_ptr_t root_p, int num_keys, int key_order[]) {
     search_results_t results = {
@@ -533,7 +508,7 @@ void test_case_1(void) {
 // -----------------------------------------------------------------------------
 
 void test_case_2(tree_ptr_t root_p) {
-    search_results_t results = search_tree_3_thds(root_p);
+    search_results_t results = search_tree_3_thds(root_p, known_args_3_thds);
     if (results.num_found) {
         fprintf(
             stderr,
@@ -619,7 +594,7 @@ void test_case_for_tree(tree_ptr_t root_p, int test_case_no) {
         exit(EXIT_FAILURE);
     }
     #else
-    results = search_tree_3_thds(root_p);
+    results = search_tree_3_thds(root_p, known_args_3_thds);
     if (results.num_matched != TOTAL_NUM_KEYS) {
         fprintf(
             stderr,
@@ -633,6 +608,17 @@ void test_case_for_tree(tree_ptr_t root_p, int test_case_no) {
 
     printf("Test case #%d-2: (Search tree) completed successfully.\n", test_case_no);
     printf("Test case #%d-3: (Search for non-existent key) started.\n", test_case_no);
+
+    results = search_tree_3_thds(root_p, unknown_args_3_thds);
+    if (results.num_matched != 0) {
+        fprintf(
+            stderr,
+            "Tree search matched %d results. Expected 0.\n",
+            results.num_matched
+        );
+        exit(EXIT_FAILURE);
+    }
+
     printf("Test case #%d-3: (Search for non-existent key) completed successfully.\n", test_case_no);
     printf("Test case #%d-4: (Insert duplicate key) started.\n", test_case_no);
     printf("Test case #%d-4: (Insert duplicate key) completed successfully.\n", test_case_no);

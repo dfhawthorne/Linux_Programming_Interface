@@ -127,6 +127,9 @@ int _free_node(tree_ptr_t node) {
     );
     #endif
 
+    node -> key = NULL;
+    node -> value = NULL;
+
     line_num = __LINE__ + 1;
     rc = pthread_mutex_unlock(&(node -> node_mutex));
     if (rc) {
@@ -871,7 +874,7 @@ int utree_delete(tree_ptr_t root, char *key) {
                         #ifdef VERBOSE
                         tree_ptr_t grandparent = parent;
                         #endif
-                        
+
                         tree_ptr_t node = left_branch;
                         parent = left_branch;
                         left_branch = node -> left;
